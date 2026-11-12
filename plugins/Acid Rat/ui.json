@@ -1,0 +1,19 @@
+{
+  "kit": { "theme": "mono", "accent": "ffb7ff1a" },
+  "pages": [
+    { "name": "ACID",
+      "controls": [
+        { "param": "Cutoff", "widget": "knob" }, { "param": "Reso", "widget": "knob" }, { "param": "Env Mod", "widget": "knob" }, { "param": "Decay", "widget": "knob" },
+        { "param": "Accent", "widget": "knob" }, { "param": "Wave", "widget": "switch" }, { "param": "Tune", "widget": "knob", "polarity": "bipolar" }, { "param": "Master", "widget": "fader" },
+        { "param": "Drive", "widget": "knob" }, { "param": "Drive Type", "widget": "switch" }, { "param": "Slide", "widget": "knob" }, { "param": "Acc Decay", "widget": "knob" },
+        { "param": "Delay Mix", "widget": "fader" }, { "param": "Delay Time", "widget": "slider", "overlay": "menu" }, { "param": "Delay Fdbk", "widget": "knob" }, { "param": "Octave", "widget": "knob", "polarity": "bipolar" }
+      ] },
+    { "name": "LINE",
+      "controls": [
+        { "param": "Seq", "widget": "switch" }, { "param": "Seed", "widget": "knob" }, { "param": "Length", "widget": "knob" }, { "param": "Rate", "widget": "slider", "overlay": "menu" },
+        { "param": "Density", "widget": "knob" }, { "param": "Seq Accent", "widget": "knob" }, { "param": "Seq Slide", "widget": "knob" }, { "param": "Mutate", "widget": "slider", "overlay": "menu" },
+        { "param": "Root", "widget": "slider", "overlay": "menu" }, { "param": "Scale", "widget": "slider", "overlay": "menu" }, { "param": "Base Oct", "widget": "knob" }, { "param": "Oct Range", "widget": "knob" },
+        { "param": "Gate", "widget": "knob" }, { "param": "Swing", "widget": "knob" }, { "param": "Acc Vel", "widget": "knob" }, { "param": "Master", "widget": "fader" }
+      ] }
+  ]
+}

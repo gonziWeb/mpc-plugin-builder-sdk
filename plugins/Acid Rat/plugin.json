@@ -1,0 +1,17 @@
+{
+  "name": "Acid Rat",
+  "manufacturer": "Gonzi Audio",
+  "version": "1.0.1",
+  "format": "vst2",
+  "kind": "instrument",
+  "uid": "G37u",
+  "numInputs": 0,
+  "numOutputs": 2,
+  "category": "Synth",
+  "file32": "VST/acid-rat-arm32.so",
+  "file64": "VST/acid-rat-arm64.so",
+  "description": "303-style acid bass line: Open303 diode-ladder engine (via X0X) with accent, slide, Devilfish ranges, Soft / RAT drive, a TB-3PO acid line generator that follows the MPC tempo, and a ping-pong delay.",
+  "author": "Gonzi Audio",
+  "url": "https://github.com/gonziWeb/mpc-plugin-builder-sdk",
+  "license": "GPL-3.0-only"
+}
