@@ -31,6 +31,11 @@ Read `AGENTS.md` first and follow its workflow and hard rules; this file only ad
    g++ -O2 -std=c++17 -Iframework gonzi/tools/render_demo.cpp -o .sdk-tools/render_demo -ldl
    .sdk-tools/render_demo "plugins/<Name>/build/native/<slug>.so" out.wav 90 -1 0 1 2   # -1 = dry, then program numbers
    ```
+   Instruments (drums): `gonzi/tools/render_kit.cpp` plays a MIDI groove (GM drum notes) through each program:
+   ```
+   g++ -O2 -std=c++17 -Iframework gonzi/tools/render_kit.cpp -o .sdk-tools/render_kit -ldl
+   .sdk-tools/render_kit "plugins/<Name>/build/native/<slug>.so" out.wav 66 doom 0 1 2   # or "hits": each sound soft+hard
+   ```
 6. `python tools/package.py "plugins/<Name>"`; hand over the zip and the WAV.
 
 Our plugin projects live in `plugins/` and are tracked in git in this fork (`build/` and `dist/` stay ignored).
@@ -39,6 +44,12 @@ Our plugin projects live in `plugins/` and are tracked in git in this fork (`bui
 | Plugin | Kind | uid | Version | Folder |
 |---|---|---|---|---|
 | Dusty Tape | effect, lo-fi tape echo | G6pD | 1.0.0 | `plugins/Dusty Tape/` |
+| Sabbath Kit | instrument, synthesised doom/stoner drum kit | Gpnq | 1.0.0 | `plugins/Sabbath Kit/` |
 
 Dusty Tape parameter order (permanent): Output, Sync, Division, Time, Feedback, Tone, Low Cut, Mix, Wow, Flutter,
 Drive, Hiss, Bits, Rate, Ping Pong.
+
+Sabbath Kit parameter order (permanent): Master, Kick Tune, Kick Decay, Kick Level, Kick Beater, Snare Tune,
+Snare Decay, Snare Level, Snare Wires, Tom1 Tune/Decay/Level, Tom2 Tune/Decay/Level, Tom3 Tune/Decay/Level,
+Hat Tune/Decay/Level, Crash Tune/Decay/Level, Ride Tune/Decay/Level, Room, Room Size, Drive, Comp, Tone, Width,
+Humanize, Vel Sens. Notes: General MIDI drum map (MPC Classic pads).
