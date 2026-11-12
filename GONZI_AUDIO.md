@@ -35,16 +35,24 @@ Read `AGENTS.md` first and follow its workflow and hard rules; this file only ad
    ```
    g++ -O2 -std=c++17 -Iframework gonzi/tools/render_kit.cpp -o .sdk-tools/render_kit -ldl
    .sdk-tools/render_kit "plugins/<Name>/build/native/<slug>.so" out.wav 66 doom 0 1 2   # or "hits": each sound soft+hard
+   .sdk-tools/render_kit "plugins/<Name>/build/native/<slug>.so" out.wav 68 builtin <prog> <paramIdx> <numChoices> <bars> <groove>...
+   ```
+   Instruments (synths): `gonzi/tools/render_synth.cpp` plays 4 bars of held chords (Dm Bb Gm A) and a melody through
+   each program, and prints peak and desktop CPU per program (`MPC_RATE=48000` tests another host rate):
+   ```
+   g++ -O2 -std=c++17 -Iframework gonzi/tools/render_synth.cpp -o .sdk-tools/render_synth -ldl
+   .sdk-tools/render_synth "plugins/<Name>/build/native/<slug>.so" out.wav 70 0 1 2
    ```
 6. `python tools/package.py "plugins/<Name>"`; hand over the zip and the WAV.
 
 Our plugin projects live in `plugins/` and are tracked in git in this fork (`build/` and `dist/` stay ignored).
 
 ## Plugins
-| Plugin | Kind | uid | Version | Folder |
-|---|---|---|---|---|
-| Dusty Tape | effect, lo-fi tape echo | G6pD | 1.0.0 | `plugins/Dusty Tape/` |
-| Sabbath Kit | instrument, sampled doom/stoner drum kit + 12 grooves | Gpnq | 2.0.0 | `plugins/Sabbath Kit/` |
+| Plugin | Kind | uid | Version | Licence | Folder |
+|---|---|---|---|---|---|
+| Dusty Tape | effect, lo-fi tape echo | G6pD | 1.0.0 | MIT | `plugins/Dusty Tape/` |
+| Sabbath Kit | instrument, sampled doom/stoner drum kit + 12 built-in grooves | Gpnq | 2.0.0 | MIT code, **samples CC BY-SA 3.0** | `plugins/Sabbath Kit/` |
+| Grimoire | instrument, dark ambient / dungeon synth (GR!MM + GHOULBOX FM-1 firmwares ported) | Gp4w | 1.2.0 | **GPL-3.0-only** | `plugins/Grimoire/` |
 
 Dusty Tape parameter order (permanent): Output, Sync, Division, Time, Feedback, Tone, Low Cut, Mix, Wow, Flutter,
 Drive, Hiss, Bits, Rate, Ping Pong.
@@ -52,7 +60,39 @@ Drive, Hiss, Bits, Rate, Ping Pong.
 Sabbath Kit parameter order (permanent): Master, Kick Tune, Kick Decay, Kick Level, Kick Beater, Snare Tune,
 Snare Decay, Snare Level, Snare Wires, Tom1 Tune/Decay/Level, Tom2 Tune/Decay/Level, Tom3 Tune/Decay/Level,
 Hat Tune/Decay/Level, Crash Tune/Decay/Level, Ride Tune/Decay/Level, Room, Room Size, Drive, Comp, Tone, Width,
-Humanize, Vel Sens, Groove, Groove Mode, Fill, Groove Vel (v2). Notes: General MIDI drum map laid out for the MPC
-Classic pads. v2 samples: AVL Drumkits "Red Zeppelin" (Glen MacArthur, CC BY-SA 3.0) in `Content/Samples`.
-Grooves live in `plugins/Sabbath Kit/src/grooves.h`; `gonzi/tools/export_grooves.cpp` writes them as MIDI files
-(`.sdk-tools/export_grooves "plugins/Sabbath Kit/Content/MIDI Grooves" 70`); `render_kit ... builtin` renders them.
+Humanize, Vel Sens, then (v2) Groove, Groove Mode, Fill, Groove Vel. Groove choices (append only): Off + the order of
+`kGrooves` in `src/grooves.h`.
+
+Sabbath Kit notes: v2 (2.0.0, code version 2000) is a 5-layer sampler; v1 was synthesised (rejected by the user as
+unrealistic). Samples: AVL Drumkits "Red Zeppelin" (Glen MacArthur, CC BY-SA 3.0, from github.com/studiorack/avl-drumkits)
+converted to 16-bit mono WAV in `Content/Samples/<piece>_<1..5>.wav`; attribution in `Content/LICENSE-samples.txt`.
+Loaded once in the first `prepare()` (std::call_once) and shared by all instances, ~24 MB. Note map = GM laid out for
+the MPC Classic pads (48 tom1, 47 tom1 edge, 45 tom2, 43/41 tom3). Grooves are drum-grid strings in `src/grooves.h`
+(16 = 16ths, 12 = 8th triplets); Groove Mode Seq follows the host transport ppq, Pad mode starts/stops on note 60
+(61 = fill). `gonzi/tools/export_grooves.cpp` writes the same grooves as MIDI files
+(`.sdk-tools/export_grooves "plugins/Sabbath Kit/Content/MIDI Grooves" 70`). Not yet confirmed on the MPC that
+Seq mode receives the transport.
+
+Grimoire parameter order (permanent, 94): Master, Voices, Vel Sens, Bend Range; then layer A (ids `a_*`) and layer B
+(`b_*`), each: Source, Knob 1–8, Attack, Decay, Sustain, Release, Level, Pan, Cutoff, Reso, Filt Type, Glide, Mono,
+Octave, Fine, LFO Rate, LFO Depth, LFO Dest, LFO Shape, Delay Snd, Reverb Snd, Grain Snd, Tape Snd, Drive Snd; then
+Tape Wow/Sat/Tone/Hiss, Grain Size/Dens/Scat/Mix, Freeze, Delay Time/Fdbk/Wear/Mix/Sync, Space Size/Damp/Mix/Pre,
+Mstr Cutoff/Reso/Type/Pos, Drive Amt/Type/Tone/Mix, Ambience, Crackle. Source choices (append only): VA, FM, Voice,
+Wheel, Phys, Phase, Gurdy. Programs (63): append only, the numbers are what projects recall.
+
+Grimoire notes: the engines are GR!MM's integer C sources (GRiMMBIENT/grimm, GPL-3.0) plus GHOULBOX's gurdy and
+ambience, compiled as C++ in `namespace grimm`. `src/grimm/` = adapted sources (readable diff to GR!MM);
+`src/core/` is generated from it by `tools/make_instanced.py` (each mutable global → per-instance state behind one
+thread-local pointer; re-run after editing `src/grimm/`). GR!MM's effects assume 256-frame blocks at 44.1 kHz: the
+plugin always renders 256 frames through a FIFO (latency 256, reported; resampled at other host rates). Being GPL,
+every distributed zip must contain the complete source (`Grimoire-<ver>-source.zip` is put inside the MPC zip).
+New programs: set `master` to 0, render with `render_synth`, then balance to about -19 dB RMS (peak under -2.5 dBFS).
+
+Grimoire's screen (since 1.1.0): a themed skin in `skins/` (old spell book: leather pages, gilt cartouches, row
+captions, sigils; iron/brass knobs, amber faders, wax-red switches). It is generated, not hand-edited:
+`python3 plugins/Grimoire/tools/make_skin.py [--preview out.png]` (Pillow) runs the SDK's `gen_ui.py` on `ui.json`,
+swaps the kit PNGs for its own drawings (same names and sizes), and inserts a full-tab background `Image` entry per
+tab as text (never round-trip TUI.json through a JSON library: overlay widgets carry duplicate `version` keys).
+Because `skins/` exists the build copies it verbatim, so after changing `ui.json` or parameters: build → make_skin →
+build. `--preview` draws the pages for checking without an MPC. Not yet checked on the MPC's screen. The same recipe
+can theme other plugins.

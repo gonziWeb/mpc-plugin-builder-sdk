@@ -1,0 +1,17 @@
+{
+  "name": "Grimoire",
+  "manufacturer": "Gonzi Audio",
+  "version": "1.2.0",
+  "format": "vst2",
+  "kind": "instrument",
+  "uid": "Gp4w",
+  "numInputs": 0,
+  "numOutputs": 2,
+  "category": "Synth",
+  "file32": "VST/grimoire-arm32.so",
+  "file64": "VST/grimoire-arm64.so",
+  "description": "Grimoire: a dark ambient / dungeon synth. Two layers of GR!MM's FM-1 engines (VA, FM, Voice with real choirs, Wheel, Phys, Phase) and GHOULBOX's hurdy-gurdy, with tape, grain, delay, huge reverb and cave ambience. GPL-3.0.",
+  "author": "Gonzi Audio",
+  "url": "https://github.com/GRiMMBIENT/grimm",
+  "license": "GPL-3.0-only"
+}
