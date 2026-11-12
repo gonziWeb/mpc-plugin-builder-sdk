@@ -1,7 +1,7 @@
 {
   "name": "Sabbath Kit",
   "manufacturer": "Gonzi Audio",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "format": "vst2",
   "kind": "instrument",
   "uid": "Gpnq",
@@ -10,8 +10,8 @@
   "category": "Drums",
   "file32": "VST/sabbath-kit-arm32.so",
   "file64": "VST/sabbath-kit-arm64.so",
-  "description": "Sabbath Kit: a synthesised acoustic drum kit for doom, stoner and sludge. Kick, snare, 3 toms, hats, crash and ride with membrane modelling, room, glue comp and tape drive.",
+  "description": "Sabbath Kit: a sampled 70s rock drum kit (26\" Ludwig kick, Porkpie snare, Zildjian/Paiste cymbals) for doom, stoner and sludge, with 12 built-in grooves, room, glue comp and tape drive.",
   "author": "Gonzi Audio",
   "url": "",
-  "license": "MIT"
+  "license": "MIT (code); samples CC BY-SA 3.0 (AVL Drumkits, Glen MacArthur)"
 }

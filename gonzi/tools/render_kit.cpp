@@ -1,6 +1,7 @@
 // render_kit.cpp - play a MIDI drum groove into a VST2 instrument, one section per program.
 // Usage: render_kit <plugin.so> <out.wav> <bpm> <groove> <program> [<program> ...]
 //   groove: "doom" (4-bar half-time groove + tom fill) or "hits" (each sound alone, soft then hard)
+//   or "builtin": the plugin's own groove player; then: <program> <paramIndex> <numChoices> <bars> <groove> [<groove> ...]
 // Notes are General MIDI drum notes (what the MPC "Classic" pad layout sends).
 #include <dlfcn.h>
 #include <algorithm>
@@ -78,6 +79,52 @@ int main(int argc, char** argv)
     const std::string groove = argv[4];
 
     std::vector<Hit> hits;
+    if (groove == "builtin")
+    {   // built-in groove player: no MIDI, transport playing, one section per groove number
+        const int prog = atoi(argv[5]), pidx = atoi(argv[6]), nch = atoi(argv[7]), bars = atoi(argv[8]);
+        const size_t secLen = (size_t)((bars * 4 * 60.0 / bpm + 2.5) * g_sr), playLen = (size_t)(bars * 4 * 60.0 / bpm * g_sr);
+        fx->dispatcher(fx, effOpen, 0, 0, nullptr, 0);
+        fx->dispatcher(fx, effSetSampleRate, 0, 0, nullptr, (float)g_sr);
+        fx->dispatcher(fx, effSetBlockSize, 0, 128, nullptr, 0);
+        std::vector<float> out; float peak = 0;
+        for (int a = 9; a < argc; ++a)
+        {
+            const int gidx = atoi(argv[a]);
+            fx->dispatcher(fx, effMainsChanged, 0, 0, nullptr, 0);
+            fx->dispatcher(fx, effSetProgram, 0, prog, nullptr, 0);
+            fx->setParameter(fx, pidx, (float)gidx / (float)(nch - 1));
+            fx->dispatcher(fx, effMainsChanged, 0, 1, nullptr, 0);
+            char txt[64] = {0}; fx->dispatcher(fx, effGetParamDisplay, pidx, 0, txt, 0);
+            printf("groove %d: %s\n", gidx, txt);
+            float oL[128], oR[128];
+            for (size_t pos = 0; pos < secLen; pos += 128)
+            {
+                const int frames = (int)std::min<size_t>(128, secLen - pos);
+                memset(&g_time, 0, sizeof g_time);
+                g_time.sampleRate = g_sr; g_time.tempo = bpm; g_time.timeSigNumerator = 4; g_time.timeSigDenominator = 4;
+                g_time.flags = kVstTempoValid | kVstPpqPosValid | kVstTimeSigValid | (pos < playLen ? kVstTransportPlaying : 0);
+                g_time.samplePos = (double)pos; g_time.ppqPos = pos / g_sr * bpm / 60.0;
+                float* outs[2] = {oL, oR};
+                memset(oL, 0, sizeof oL); memset(oR, 0, sizeof oR);
+                fx->processReplacing(fx, nullptr, outs, frames);
+                for (int i = 0; i < frames; ++i) { out.push_back(oL[i]); out.push_back(oR[i]); peak = std::max(peak, std::max(fabsf(oL[i]), fabsf(oR[i]))); }
+            }
+            for (int i = 0; i < (int)(0.5 * g_sr) * 2; ++i) out.push_back(0);
+        }
+        fx->dispatcher(fx, effMainsChanged, 0, 0, nullptr, 0);
+        fx->dispatcher(fx, effClose, 0, 0, nullptr, 0);
+        std::vector<int16_t> pcm(out.size());
+        for (size_t i = 0; i < out.size(); ++i) pcm[i] = (int16_t)lrintf(fmaxf(-1, fminf(1, out[i])) * 32767);
+        FILE* f = fopen(argv[2], "wb");
+        uint32_t dataBytes = (uint32_t)(pcm.size() * 2), riff = 36 + dataBytes, fmtLen = 16, sr = 44100, byteRate = sr * 4;
+        uint16_t fmt = 1, ch = 2, align = 4, bitsPer = 16;
+        fwrite("RIFF", 1, 4, f); fwrite(&riff, 4, 1, f); fwrite("WAVEfmt ", 1, 8, f); fwrite(&fmtLen, 4, 1, f);
+        fwrite(&fmt, 2, 1, f); fwrite(&ch, 2, 1, f); fwrite(&sr, 4, 1, f); fwrite(&byteRate, 4, 1, f);
+        fwrite(&align, 2, 1, f); fwrite(&bitsPer, 2, 1, f); fwrite("data", 1, 4, f); fwrite(&dataBytes, 4, 1, f);
+        fwrite(pcm.data(), 2, pcm.size(), f); fclose(f);
+        printf("wrote %s (%.1f s), peak %.2f dBFS\n", argv[2], pcm.size() / 2 / g_sr, 20 * log10(peak + 1e-9));
+        return 0;
+    }
     if (groove == "hits") hitsList(hits); else doomGroove(hits);
     double lastBeat = 0; for (auto& x : hits) lastBeat = std::max(lastBeat, x.beat);
     const size_t total = (size_t)((lastBeat * 60.0 / bpm + 3.5) * g_sr);

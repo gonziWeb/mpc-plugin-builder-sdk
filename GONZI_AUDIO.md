@@ -35,6 +35,7 @@ Read `AGENTS.md` first and follow its workflow and hard rules; this file only ad
    ```
    g++ -O2 -std=c++17 -Iframework gonzi/tools/render_kit.cpp -o .sdk-tools/render_kit -ldl
    .sdk-tools/render_kit "plugins/<Name>/build/native/<slug>.so" out.wav 66 doom 0 1 2   # or "hits": each sound soft+hard
+   .sdk-tools/render_kit "plugins/<Name>/build/native/<slug>.so" out.wav 68 builtin <prog> <paramIdx> <numChoices> <bars> <groove>...
    ```
    Instruments (synths): `gonzi/tools/render_synth.cpp` plays 4 bars of held chords (Dm Bb Gm A) and a melody through
    each program, and prints peak and desktop CPU per program (`MPC_RATE=48000` tests another host rate):
@@ -50,7 +51,7 @@ Our plugin projects live in `plugins/` and are tracked in git in this fork (`bui
 | Plugin | Kind | uid | Version | Licence | Folder |
 |---|---|---|---|---|---|
 | Dusty Tape | effect, lo-fi tape echo | G6pD | 1.0.0 | MIT | `plugins/Dusty Tape/` |
-| Sabbath Kit | instrument, synthesised doom/stoner drum kit | Gpnq | 1.0.0 | MIT | `plugins/Sabbath Kit/` |
+| Sabbath Kit | instrument, sampled doom/stoner drum kit + 12 built-in grooves | Gpnq | 2.0.0 | MIT code, **samples CC BY-SA 3.0** | `plugins/Sabbath Kit/` |
 | Grimoire | instrument, dark ambient / dungeon synth (GR!MM + GHOULBOX FM-1 firmwares ported) | Gp4w | 1.2.0 | **GPL-3.0-only** | `plugins/Grimoire/` |
 
 Dusty Tape parameter order (permanent): Output, Sync, Division, Time, Feedback, Tone, Low Cut, Mix, Wow, Flutter,
@@ -59,7 +60,18 @@ Drive, Hiss, Bits, Rate, Ping Pong.
 Sabbath Kit parameter order (permanent): Master, Kick Tune, Kick Decay, Kick Level, Kick Beater, Snare Tune,
 Snare Decay, Snare Level, Snare Wires, Tom1 Tune/Decay/Level, Tom2 Tune/Decay/Level, Tom3 Tune/Decay/Level,
 Hat Tune/Decay/Level, Crash Tune/Decay/Level, Ride Tune/Decay/Level, Room, Room Size, Drive, Comp, Tone, Width,
-Humanize, Vel Sens. Notes: General MIDI drum map (MPC Classic pads).
+Humanize, Vel Sens, then (v2) Groove, Groove Mode, Fill, Groove Vel. Groove choices (append only): Off + the order of
+`kGrooves` in `src/grooves.h`.
+
+Sabbath Kit notes: v2 (2.0.0, code version 2000) is a 5-layer sampler; v1 was synthesised (rejected by the user as
+unrealistic). Samples: AVL Drumkits "Red Zeppelin" (Glen MacArthur, CC BY-SA 3.0, from github.com/studiorack/avl-drumkits)
+converted to 16-bit mono WAV in `Content/Samples/<piece>_<1..5>.wav`; attribution in `Content/LICENSE-samples.txt`.
+Loaded once in the first `prepare()` (std::call_once) and shared by all instances, ~24 MB. Note map = GM laid out for
+the MPC Classic pads (48 tom1, 47 tom1 edge, 45 tom2, 43/41 tom3). Grooves are drum-grid strings in `src/grooves.h`
+(16 = 16ths, 12 = 8th triplets); Groove Mode Seq follows the host transport ppq, Pad mode starts/stops on note 60
+(61 = fill). `gonzi/tools/export_grooves.cpp` writes the same grooves as MIDI files
+(`.sdk-tools/export_grooves "plugins/Sabbath Kit/Content/MIDI Grooves" 70`). Not yet confirmed on the MPC that
+Seq mode receives the transport.
 
 Grimoire parameter order (permanent, 94): Master, Voices, Vel Sens, Bend Range; then layer A (ids `a_*`) and layer B
 (`b_*`), each: Source, Knob 1–8, Attack, Decay, Sustain, Release, Level, Pan, Cutoff, Reso, Filt Type, Glide, Mono,
