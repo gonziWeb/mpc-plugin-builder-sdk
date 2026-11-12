@@ -1,0 +1,434 @@
+{
+ "kit": {
+  "accent": "ffe8a034"
+ },
+ "style": {
+  "background": "ff0d0a07",
+  "accent": "ffe8a034",
+  "text": "ffeee2c4",
+  "muted": "ffc9a256"
+ },
+ "pages": [
+  {
+   "name": "LAYER A",
+   "controls": [
+    {
+     "param": "A Knob 1",
+     "widget": "knob"
+    },
+    {
+     "param": "A Knob 2",
+     "widget": "knob"
+    },
+    {
+     "param": "A Knob 3",
+     "widget": "knob"
+    },
+    {
+     "param": "A Knob 4",
+     "widget": "knob"
+    },
+    {
+     "param": "A Knob 5",
+     "widget": "knob"
+    },
+    {
+     "param": "A Knob 6",
+     "widget": "knob"
+    },
+    {
+     "param": "A Knob 7",
+     "widget": "knob"
+    },
+    {
+     "param": "A Knob 8",
+     "widget": "knob"
+    },
+    {
+     "param": "A Attack",
+     "widget": "fader"
+    },
+    {
+     "param": "A Decay",
+     "widget": "fader"
+    },
+    {
+     "param": "A Sustain",
+     "widget": "fader"
+    },
+    {
+     "param": "A Release",
+     "widget": "fader"
+    },
+    {
+     "param": "A Source",
+     "widget": "slider",
+     "overlay": "menu"
+    },
+    {
+     "param": "A Level",
+     "widget": "fader"
+    },
+    {
+     "param": "A Octave",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "A Fine",
+     "widget": "knob",
+     "polarity": "bipolar"
+    }
+   ]
+  },
+  {
+   "name": "A MIX",
+   "controls": [
+    {
+     "param": "A Cutoff",
+     "widget": "knob"
+    },
+    {
+     "param": "A Reso",
+     "widget": "knob"
+    },
+    {
+     "param": "A Filt Type",
+     "widget": "switch"
+    },
+    {
+     "param": "A Glide",
+     "widget": "knob"
+    },
+    {
+     "param": "A LFO Rate",
+     "widget": "knob"
+    },
+    {
+     "param": "A LFO Depth",
+     "widget": "knob"
+    },
+    {
+     "param": "A LFO Dest",
+     "widget": "slider",
+     "overlay": "menu"
+    },
+    {
+     "param": "A LFO Shape",
+     "widget": "slider",
+     "overlay": "menu"
+    },
+    {
+     "param": "A Delay Snd",
+     "widget": "fader"
+    },
+    {
+     "param": "A Reverb Snd",
+     "widget": "fader"
+    },
+    {
+     "param": "A Grain Snd",
+     "widget": "fader"
+    },
+    {
+     "param": "A Tape Snd",
+     "widget": "fader"
+    },
+    {
+     "param": "A Drive Snd",
+     "widget": "fader"
+    },
+    {
+     "param": "A Pan",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "A Mono",
+     "widget": "switch"
+    },
+    "empty"
+   ]
+  },
+  {
+   "name": "LAYER B",
+   "controls": [
+    {
+     "param": "B Knob 1",
+     "widget": "knob"
+    },
+    {
+     "param": "B Knob 2",
+     "widget": "knob"
+    },
+    {
+     "param": "B Knob 3",
+     "widget": "knob"
+    },
+    {
+     "param": "B Knob 4",
+     "widget": "knob"
+    },
+    {
+     "param": "B Knob 5",
+     "widget": "knob"
+    },
+    {
+     "param": "B Knob 6",
+     "widget": "knob"
+    },
+    {
+     "param": "B Knob 7",
+     "widget": "knob"
+    },
+    {
+     "param": "B Knob 8",
+     "widget": "knob"
+    },
+    {
+     "param": "B Attack",
+     "widget": "fader"
+    },
+    {
+     "param": "B Decay",
+     "widget": "fader"
+    },
+    {
+     "param": "B Sustain",
+     "widget": "fader"
+    },
+    {
+     "param": "B Release",
+     "widget": "fader"
+    },
+    {
+     "param": "B Source",
+     "widget": "slider",
+     "overlay": "menu"
+    },
+    {
+     "param": "B Level",
+     "widget": "fader"
+    },
+    {
+     "param": "B Octave",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "B Fine",
+     "widget": "knob",
+     "polarity": "bipolar"
+    }
+   ]
+  },
+  {
+   "name": "B MIX",
+   "controls": [
+    {
+     "param": "B Cutoff",
+     "widget": "knob"
+    },
+    {
+     "param": "B Reso",
+     "widget": "knob"
+    },
+    {
+     "param": "B Filt Type",
+     "widget": "switch"
+    },
+    {
+     "param": "B Glide",
+     "widget": "knob"
+    },
+    {
+     "param": "B LFO Rate",
+     "widget": "knob"
+    },
+    {
+     "param": "B LFO Depth",
+     "widget": "knob"
+    },
+    {
+     "param": "B LFO Dest",
+     "widget": "slider",
+     "overlay": "menu"
+    },
+    {
+     "param": "B LFO Shape",
+     "widget": "slider",
+     "overlay": "menu"
+    },
+    {
+     "param": "B Delay Snd",
+     "widget": "fader"
+    },
+    {
+     "param": "B Reverb Snd",
+     "widget": "fader"
+    },
+    {
+     "param": "B Grain Snd",
+     "widget": "fader"
+    },
+    {
+     "param": "B Tape Snd",
+     "widget": "fader"
+    },
+    {
+     "param": "B Drive Snd",
+     "widget": "fader"
+    },
+    {
+     "param": "B Pan",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "B Mono",
+     "widget": "switch"
+    },
+    "empty"
+   ]
+  },
+  {
+   "name": "FX",
+   "controls": [
+    {
+     "param": "Tape Wow",
+     "widget": "knob"
+    },
+    {
+     "param": "Tape Sat",
+     "widget": "knob"
+    },
+    {
+     "param": "Tape Tone",
+     "widget": "knob"
+    },
+    {
+     "param": "Tape Hiss",
+     "widget": "knob"
+    },
+    {
+     "param": "Grain Size",
+     "widget": "knob"
+    },
+    {
+     "param": "Grain Dens",
+     "widget": "knob"
+    },
+    {
+     "param": "Grain Scat",
+     "widget": "knob"
+    },
+    {
+     "param": "Grain Mix",
+     "widget": "fader"
+    },
+    {
+     "param": "Delay Time",
+     "widget": "knob"
+    },
+    {
+     "param": "Delay Fdbk",
+     "widget": "knob"
+    },
+    {
+     "param": "Delay Wear",
+     "widget": "knob"
+    },
+    {
+     "param": "Delay Mix",
+     "widget": "fader"
+    },
+    {
+     "param": "Space Size",
+     "widget": "knob"
+    },
+    {
+     "param": "Space Damp",
+     "widget": "knob"
+    },
+    {
+     "param": "Space Pre",
+     "widget": "knob"
+    },
+    {
+     "param": "Space Mix",
+     "widget": "fader"
+    }
+   ]
+  },
+  {
+   "name": "MASTER",
+   "controls": [
+    {
+     "param": "Mstr Cutoff",
+     "widget": "knob"
+    },
+    {
+     "param": "Mstr Reso",
+     "widget": "knob"
+    },
+    {
+     "param": "Mstr Type",
+     "widget": "switch"
+    },
+    {
+     "param": "Mstr Pos",
+     "widget": "switch"
+    },
+    {
+     "param": "Drive Amt",
+     "widget": "knob"
+    },
+    {
+     "param": "Drive Type",
+     "widget": "switch"
+    },
+    {
+     "param": "Drive Tone",
+     "widget": "knob"
+    },
+    {
+     "param": "Drive Mix",
+     "widget": "fader"
+    },
+    {
+     "param": "Delay Sync",
+     "widget": "slider",
+     "overlay": "menu"
+    },
+    {
+     "param": "Freeze",
+     "widget": "switch"
+    },
+    {
+     "param": "Ambience",
+     "widget": "fader"
+    },
+    {
+     "param": "Crackle",
+     "widget": "fader"
+    },
+    {
+     "param": "Master",
+     "widget": "fader"
+    },
+    {
+     "param": "Voices",
+     "widget": "knob"
+    },
+    {
+     "param": "Vel Sens",
+     "widget": "knob"
+    },
+    {
+     "param": "Bend Range",
+     "widget": "knob"
+    }
+   ]
+  }
+ ]
+}
