@@ -5,9 +5,7 @@ dist/
 # Locally installed toolchain helpers (zig venv, host_sim binary, docker marker)
 .sdk-tools/
 
-# Users' own plugin projects live here; the SDK repo only tracks the placeholder
-plugins/*
-!plugins/.gitkeep
+# Gonzi Audio fork: our plugin projects in plugins/ are tracked (build/ and dist/ stay ignored above)
 
 # Python
 __pycache__/
