@@ -5,13 +5,13 @@
       "name": "GROOVE",
       "controls": [
         {
+          "param": "Play",
+          "widget": "switch"
+        },
+        {
           "param": "Groove",
           "widget": "slider",
           "overlay": "menu"
-        },
-        {
-          "param": "Groove Mode",
-          "widget": "switch"
         },
         {
           "param": "Fill",
@@ -22,14 +22,17 @@
           "widget": "fader"
         },
         {
+          "param": "Groove Mode",
+          "widget": "switch"
+        },
+        {
+          "param": "Pad Map",
+          "widget": "switch"
+        },
+        {
           "param": "Humanize",
           "widget": "knob"
         },
-        {
-          "param": "Vel Sens",
-          "widget": "knob"
-        },
-        "empty",
         {
           "param": "Master",
           "widget": "fader"

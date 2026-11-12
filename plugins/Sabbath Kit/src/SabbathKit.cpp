@@ -24,7 +24,8 @@
 //   49 Crash A20   57 Crash K17   52/55 Crash Paiste 2002 22"   51/58 Ride   53 Ride bell   59 Ride shank (wash)
 //   54/82 Tambourine   56 Cowbell
 //   Other notes fold by octaves into 35..59. In Groove Mode "Pad": note 60 starts/stops the groove,
-//   note 61 plays a fill on the next bar.
+//   note 61 plays a fill on the next bar. This map is used when Pad Map = GM (for MIDI files).
+//   Pad Map = C2 / C1 (default C2): a 16-pad layout instead, see kPadLayout below.
 //
 // CPU: one interpolated sample read per voice per sample; voices end with their sample or their decay.
 
@@ -64,6 +65,9 @@ enum ParamIndex
     kGrooveMode,  // Seq: plays while the MPC sequencer plays, locked to its tempo; Pad: note 60 starts/stops
     kFill,        // Off / every 4 bars / every 8 bars
     kGrooveVel,   // % dynamics of the groove
+    // --- v2.1 ---
+    kGroovePlay,  // On: the groove plays by itself (no need to press Play on the MPC). Groove Off + Play = a random groove
+    kPadMap,      // which notes play which drum: C2 / C1 = 16-pad layout starting at note 48 / 36, GM = General MIDI
     kNumParams
 };
 
@@ -141,6 +145,18 @@ int pieceForNote(int n)
         default: return pSnare;
     }
 }
+
+// 16-pad layout (Pad Map C2 / C1): pad 1 is bottom-left, rows of four going up, like the MPC's pads.
+//   13 Crash A20   14 Crash 2002   15 Crash K17   16 Ride shank (wash)
+//    9 Snare edge  10 Cross-stick  11 Ride        12 Ride bell
+//    5 Tom 3       6 Tom 2         7 Tom 1         8 Pedal hat
+//    1 Kick        2 Snare         3 Closed hat    4 Open hat
+// The layout repeats every 16 notes, so any 16 pads in a row always hold the whole kit.
+const int kPadLayout[16] = { pKick, pSnare, pHatClosed, pHatOpen, pTom3, pTom2, pTom1, pHatPedal,
+                             pSnareEdge, pXStick, pRide, pRideBell, pCrashA20, pCrash2002, pCrashK17, pRideShank };
+inline int pieceForPad(int note, int base) { return kPadLayout[(((note - base) % 16) + 16) % 16]; }
+
+const int kInternal = 1000;   // added to the note of groove events: those are always General MIDI
 
 // ---------------------------------------------------------------------------
 // Sample bank: loaded once (first prepare()), shared by all instances, never freed while loaded.
@@ -309,7 +325,7 @@ public:
         i.name = "Sabbath Kit";
         i.vendor = "Gonzi Audio";
         i.uniqueId = MPC_FOURCC('G', 'p', 'n', 'q');   // == "uid" in plugin.json. Never change.
-        i.version = 2000;
+        i.version = 2100;
         i.isInstrument = true;
         i.numInputs = 0;
         i.numOutputs = 2;
@@ -362,6 +378,9 @@ public:
         addParam(choiceParam("groove_mode", "Groove Mode", { "Seq", "Pad" }, 0));
         addParam(choiceParam("groove_fill", "Fill", { "Off", "4 Bars", "8 Bars" }, 1));
         addParam(floatParam("groove_vel", "Groove Vel", 0.0f, 100.0f, 80.0f, "%", 0));
+        // v2.1
+        addParam(boolParam("groove_play", "Play", false));
+        addParam(choiceParam("pad_map", "Pad Map", { "C2", "C1", "GM" }, 0));
         if (numParams() != kNumParams) mpc::log("SabbathKit: parameter count mismatch");
         addPresets();
     }
@@ -385,7 +404,7 @@ public:
         room_.reset();
         compEnv_ = 0.0f; compGain_ = 1.0f; compTarget_ = 1.0f;
         toneL_.reset(); toneR_.reset();
-        numPending_ = 0; padRunning_ = false; padPpq_ = 0.0; padFillBar_ = -1;
+        numPending_ = 0; padRunning_ = false; padPpq_ = 0.0; padFillBar_ = -1; play_ = false;
         seqLastEnd_ = -1.0;
         master_.snap(dbToGain(get(kMaster)));
     }
@@ -401,7 +420,7 @@ public:
             const mpc::MidiEvent& ev = ctx.midi[e];
             if (ev.isNoteOn())
             {
-                if (grooveMode_ == 1 && (ev.note() == 60 || ev.note() == 61)) { padControl(ev.note(), ctx); continue; }
+                if (grooveMode_ == 1 && padMap_ == 2 && (ev.note() == 60 || ev.note() == 61)) { padControl(ev.note(), ctx); continue; }
                 pushEv(ev.sampleOffset, ev.note(), ev.velocity());
             }
             else if (ev.isController() && (ev.controller() == 120 || ev.controller() == 123))
@@ -468,6 +487,18 @@ private:
         fillEvery_ = getInt(kFill) == 0 ? 0 : (getInt(kFill) == 1 ? 4 : 8);
         grooveVel_ = get(kGrooveVel) * 0.01f;
         hum_ = get(kHumanize) * 0.01f;
+        padMap_ = getInt(kPadMap);
+        const bool play = getBool(kGroovePlay);
+        if (play && !play_)
+        {   // Play just switched on: start from bar 1; with Groove on Off, pick a groove at random
+            padPpq_ = 0.0; padFillBar_ = -1;
+            const int n = (int)grooves_.size();
+            int g = 1 + (int)(rng_.next() % (uint32_t)n);
+            if (g == randomGroove_) g = 1 + (g % n);
+            randomGroove_ = g;
+        }
+        play_ = play;
+        if (groove_ == 0 && play_) groove_ = randomGroove_;
     }
 
     // ---------------------------------------------------------------- groove player
@@ -494,10 +525,19 @@ private:
         const double bpm = hostBpm(ctx);
         const double beatsPerSample = bpm / (60.0 * sr_);
         const double span = beatsPerSample * ctx.numFrames;
-        if (grooveMode_ == 0)
+        const mpc::Transport& tr = ctx.transport;
+        const bool hostRolling = tr.valid && tr.playing && tr.ppqValid;
+        if (play_ && !hostRolling)
+        {   // Play switch, MPC stopped: free-running at the MPC's tempo
+            seqLastEnd_ = -1.0;
+            const double p0 = padPpq_, p1 = p0 + span;
+            schedule(p0, p1, beatsPerSample, -1);
+            padPpq_ = p1;
+        }
+        else if (grooveMode_ == 0 || play_)
         {
             const mpc::Transport& t = ctx.transport;
-            if (!(t.valid && t.playing && t.ppqValid)) { seqLastEnd_ = -1.0; return; }
+            if (!hostRolling) { seqLastEnd_ = -1.0; return; }
             double p0 = t.ppqPos;
             if (seqLastEnd_ >= 0.0 && std::fabs(p0 - seqLastEnd_) < 1e-3) p0 = seqLastEnd_;   // seamless blocks
             const double p1 = p0 + span;
@@ -543,7 +583,7 @@ private:
         if (note == 38 || note == 40 || note == 37) lateMs += 3.0f + 5.0f * hum_;
         offset += (int)(lateMs * 0.001f * (float)sr_);
         const int v = clamp((int)std::lround((float)vel * velScale * (1.0f + rng_.nextBipolar() * 0.08f * hum_)), 1, 127);
-        if (numPending_ < kMaxPending) pend_[numPending_++] = { offset, note, v };
+        if (numPending_ < kMaxPending) pend_[numPending_++] = { offset, note + kInternal, v };
     }
 
     void drainPending(int frames)
@@ -560,7 +600,8 @@ private:
     // ---------------------------------------------------------------- voices
     void trigger(int note, int velocity)
     {
-        const int pc = pieceForNote(note);
+        const int pc = note >= kInternal ? pieceForNote(note - kInternal)
+                     : padMap_ == 0 ? pieceForPad(note, 48) : padMap_ == 1 ? pieceForPad(note, 36) : pieceForNote(note);
         const PieceInfo& pi = kPieces[pc];
         const int grp = pi.group;
         const float sens = get(kVelSens) * 0.01f;
@@ -704,6 +745,8 @@ private:
     bool padRunning_ = false;
     double padPpq_ = 0.0;
     int padFillBar_ = -1;
+    bool play_ = false;
+    int padMap_ = 0, randomGroove_ = 0;
 
     float roomLevel_ = 0.0f, width_ = 1.0f;
     bool compOn_ = false, driveOn_ = false;
