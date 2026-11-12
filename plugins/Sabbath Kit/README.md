@@ -1,81 +1,95 @@
-# Sabbath Kit — Gonzi Audio
+# Sabbath Kit 2 — Gonzi Audio
 
-A synthesised acoustic drum kit for **doom, stoner and sludge**: a big low kick, a fat 14" snare, a rack tom and two
-floor toms, heavy 15" hats, a 20" crash and a 22" ride, played in a room and glued on a bus with compression and
-tape drive. No samples: every hit is modelled when it is played, so velocity, humanize and overlapping tails make each
-one a little different (no machine-gun repeats).
+A **sampled** 70s rock drum kit for **doom, stoner and sludge**, with **12 ready-made grooves** that play in time
+with the MPC sequencer. Real recorded drums: a 26" Ludwig kick, a Porkpie snare (centre, edge, cross-stick),
+Ludwig 14" / 16" / 18" toms, Sabian Rock hats, Zildjian A 20" and K 17" crashes, a Paiste 2002 22", a
+Zildjian A 24" ride (bow, bell, shank), tambourine, cowbell and clap — 5 velocity layers each. On top: room,
+glue compressor, tape drive and tilt EQ.
 
-Instrument, stereo out, 35 parameters, 6 programs. MPC OS 3.10.1 or later, External Plugin Support on.
+Instrument, stereo out, 39 parameters, 6 programs. MPC OS 3.10.1 or later, External Plugin Support on.
+
+## Grooves
+
+Pick one on the **GROOVE** page (or set `Groove` with a Q-Link):
+
+| # | Groove | Feel |
+|---|---|---|
+| 1 | Iron Ride | half-time doom, ride on quarters |
+| 2 | Wizard Wash | big Paiste wash on every beat, slow and huge |
+| 3 | Funeral | funeral-doom crawl, one hit per beat at most |
+| 4 | Stoner Shuffle | 12/8 shuffle hats, riff-locked kick |
+| 5 | Desert Rock | straight-eighth stoner rock with open-hat lift |
+| 6 | Sabbath Gallop | galloping triplet floor tom under a backbeat |
+| 7 | Sludge Toms | tribal floor toms, snare on 3 |
+| 8 | Sludge Crush | half-time, double kicks, big Paiste |
+| 9 | Slow Blues Doom | 12/8 ride triplets, heavy backbeat |
+| 10 | Tribal Ritual | toms, kick and tambourine, no backbeat |
+| 11 | Levee Stomp | heavy half-time shuffle, triplet kick push |
+| 12 | Fuzz Pocket | groovy stoner pocket with tambourine |
+
+- **Groove Mode = Seq** (default): the groove plays whenever the MPC sequencer plays, locked to its tempo and bar
+  position. Put Sabbath Kit on a track, choose a groove, press Play. Pads still play the kit on top.
+- **Groove Mode = Pad**: pad/note **60** starts and stops the groove (at the MPC tempo, 70 BPM if none), note **61**
+  plays a fill on the next bar.
+- **Fill**: Off, every 4 bars or every 8 bars. The bar after a fill gets a crash.
+- **Groove Vel**: overall dynamics. **Humanize** adds small timing/velocity variations and lays the snare back.
+
+**MIDI files**: the same 12 grooves are in `Content/MIDI Grooves/` (and in the zip) as 8-bar MIDI files (fills on
+bars 4 and 8). Load one on the MPC as a sequence and edit it note by note, then leave Groove on Off.
 
 ## Pads / notes
 
-General MIDI drum notes — what the MPC **Classic** pad layout sends:
+General MIDI, laid out so the MPC **Classic** pad bank A plays the whole kit:
 
 | Note | Sound | Note | Sound |
 |---|---|---|---|
-| 35, 36 | Kick | 42, 54 | Closed hat |
-| 37 | Cross-stick | 44 | Pedal hat (foot "chick") |
-| 38, 39 | Snare | 46 | Open hat (choked by 42/44) |
-| 40 | Rimshot | 49, 52, 55, 57 | Crash |
-| 47, 48, 50 | Tom 1 (12" rack) | 51, 58 | Ride |
-| 43, 45 | Tom 2 (16" floor) | 53, 56 | Ride bell |
-| 41 | Tom 3 (18" floor) | 59 | Ride crashed (wash) |
+| 35, 36 | Kick | 42 | Closed hat |
+| 37 | Cross-stick | 44 | Pedal hat |
+| 38 | Snare | 46 | Open hat (choked by 42/44) |
+| 39 | Clap | 49 | Crash Zildjian A 20" |
+| 40 | Snare edge | 57 | Crash Zildjian K 17" |
+| 48, 50 | Tom 1 (14") | 52, 55 | Crash Paiste 2002 22" |
+| 47 | Tom 1 edge | 51, 58 | Ride |
+| 45 | Tom 2 (16" floor) | 53 | Ride bell |
+| 43, 41 | Tom 3 (18" floor) | 59 | Ride shank (wash) |
+| 54, 82 | Tambourine | 56 | Cowbell |
 
-Any other note is folded by octaves into 35–59, so every pad plays something (Classic pad A04 = note 82 → ride).
-Note-offs are ignored: drums ring out.
-
-## How it works
-
-- **Shells** (kick, snare, toms): up to six membrane modes at circular-membrane ratios (1, 1.594, 2.136, 2.296…), each
-  with its own decay; the pitch drops on hard hits (head tension); stick / beater noise; snare-wire rattle that lags
-  the stick by a millisecond. Kick and tom hits make the snare wires buzz in sympathy, like a real kit.
-- **Metals** (hats, crash, ride): ring-modulated inharmonic square pairs plus noise, band-passed, with a low-pass that
-  darkens as the cymbal decays; the ride adds pitched stick "ping" partials, the bell its own partials.
-- **Realism**: velocity changes level *and* brightness *and* pitch bend; humanize varies pitch, decay, level and
-  brightness per hit; two or three overlapping hits of the same piece can ring together (the oldest fades, no clicks).
-- **Bus**: 4-line feedback-delay room → glue compressor (4:1, auto make-up) → tape saturation → tilt EQ → master,
-  with a transparent soft limiter above −3 dBFS so the MPC never sees overs.
+Other notes fold by octaves into 35–59.
 
 ## Parameters (order is permanent)
 
-| # | Name | Range | What it does |
-|---|---|---|---|
-| 0 | Master | −40…+6 dB | Output level |
-| 1–4 | Kick Tune / Decay / Level / Beater | ±12 st, %, %, % | Beater: felt (0) → hard plastic (100) |
-| 5–8 | Snare Tune / Decay / Level / Wires | ±12 st, %, %, % | Wires: snare rattle amount (also the sympathetic buzz) |
-| 9–17 | Tom1/2/3 Tune / Decay / Level | ±12 st, %, % | |
-| 18–20 | Hat Tune / Decay / Level | | Decay mostly affects the open hat |
-| 21–23 | Crash Tune / Decay / Level | | |
-| 24–26 | Ride Tune / Decay / Level | | Also ride bell and ride crash |
-| 27 | Room | % | Room level |
-| 28 | Room Size | % | Small wooden room → big live room (0.35–2.4 s) |
-| 29 | Drive | % | Tape saturation on the whole kit |
-| 30 | Comp | % | Glue compression (0 = off, 100 = threshold −30 dB) |
-| 31 | Tone | −100…+100 | Tilt EQ: dark ↔ bright |
-| 32 | Width | % | Stereo spread (drummer's view: hats left, floor toms and ride right) |
-| 33 | Humanize | % | Random variation per hit |
-| 34 | Vel Sens | % | How much velocity changes level and brightness |
+| # | Name | What it does |
+|---|---|---|
+| 0 | Master | Output level (dB) |
+| 1–4 | Kick Tune / Decay / Level / Beater | Tune ±12 st (resampled), Decay 100 % = natural ring, Beater = softer ↔ more click |
+| 5–8 | Snare Tune / Decay / Level / Wires | Wires = duller ↔ crisper snare |
+| 9–17 | Tom1/2/3 Tune / Decay / Level | |
+| 18–26 | Hat, Crash, Ride Tune / Decay / Level | |
+| 27–28 | Room, Room Size | Room level; small wooden room → big live room |
+| 29–31 | Drive, Comp, Tone | Tape saturation, glue compression, dark ↔ bright |
+| 32–34 | Width, Humanize, Vel Sens | Stereo spread (drummer's view), per-hit variation, velocity response |
+| 35 | Groove | Off / 12 grooves |
+| 36 | Groove Mode | Seq / Pad |
+| 37 | Fill | Off / 4 Bars / 8 Bars |
+| 38 | Groove Vel | Groove dynamics |
 
-Pages: **KIT** (kick, snare, room/bus), **TOMS**, **CYMBALS**.
+Pages: **GROOVE**, **KIT**, **TOMS**, **CYMBALS**.
 
-## Programs
-
-Iron Doom (default, warm medium room) · Funeral March (detuned, long decays, huge dark room) · Desert Fuzz (brighter,
-driven and squashed) · Sludge Crush (heavy comp + drive, dark) · Garage Live (roomy, bright, loose) · Dry Studio
-(almost no processing — the raw kit).
-
-## Tips
-
-- Play slow: 55–75 BPM, half-time snare on 3, ride or crash washes on quarters.
-- Use the ride crashed (note 59) for the stoner "wash" on choruses; pedal hat (44) for time keeping under riffs.
-- For more size, raise Room and Comp together: the compressor pumps the room like a 70s live recording.
+Programs: Iron Doom · Funeral March (tuned down, huge dark room) · Desert Fuzz · Sludge Crush · Garage Live · Dry Studio.
 
 ## Honest notes
 
-- It is a synthesis model, not a sampled kit: very convincing for shells and the room; cymbals are good in a mix,
-  less so soloed than a multisampled cymbal.
-- No multi-outs, no per-drum pan or choke editing, no MIDI-learn.
-- CPU: voices sleep at −70 dB; a dense groove keeps 6–10 of the 20 voices alive. On a desktop it uses well under 1 %
-  of a core; on the MPC One (1st gen) expect a few percent per instance.
+- v2 replaces v1's synthesised engine with samples; the parameter list is the same with four groove parameters
+  appended, so v1 projects still open (sounds differ, of course).
+- 5 velocity layers, no round robins: Humanize hides repetition with neighbour layers, small pitch and level changes.
+- Grooves are 4/4 (12/8 grooves are written as triplets). Seq mode needs the MPC to send its transport position to
+  plugins; if a groove does not start with Play, use Pad mode.
+- Memory: the samples load once (~24 MB, 16-bit) and are shared by all instances. CPU: a few percent on the MPC One.
 
-Licence: MIT. All DSP is original to this project (mode ratios are textbook circular-membrane values).
+## Licences
+
+- Code: MIT (Gonzi Audio).
+- Samples: "Red Zeppelin" kit from **AVL Drumkits** by **Glen MacArthur** (http://www.bandshed.net/avldrumkits/),
+  **CC BY-SA 3.0**; converted to WAV, trimmed and renamed by Gonzi Audio, shared under the same licence. See
+  `Content/LICENSE-samples.txt`. Music you make with them is yours.
+- Grooves and MIDI files: original, MIT.

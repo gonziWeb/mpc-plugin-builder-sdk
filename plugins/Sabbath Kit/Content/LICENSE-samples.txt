@@ -1,0 +1,18 @@
+Sabbath Kit - sample credits and licence
+========================================
+
+The drum samples in Content/Samples come from the "Red Zeppelin" kit of the AVL Drumkits
+by Glen MacArthur (AV Linux, http://www.bandshed.net/avldrumkits/), distributed at
+https://github.com/studiorack/avl-drumkits.
+
+Licence: Creative Commons Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0)
+https://creativecommons.org/licenses/by-sa/3.0/
+
+Changes made by Gonzi Audio: converted from FLAC to 16-bit 44.1 kHz mono WAV, leading
+silence and tails below -66 dB trimmed, short fade-out added, files renamed.
+These modified samples are distributed under the same CC BY-SA 3.0 licence.
+
+Music you make with these drums is yours: the licence covers the samples themselves,
+not recordings made by playing them (see the author's licence notes).
+
+The plugin code (Sabbath Kit by Gonzi Audio) is MIT licensed.

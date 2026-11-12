@@ -44,7 +44,7 @@ Our plugin projects live in `plugins/` and are tracked in git in this fork (`bui
 | Plugin | Kind | uid | Version | Folder |
 |---|---|---|---|---|
 | Dusty Tape | effect, lo-fi tape echo | G6pD | 1.0.0 | `plugins/Dusty Tape/` |
-| Sabbath Kit | instrument, synthesised doom/stoner drum kit | Gpnq | 1.0.0 | `plugins/Sabbath Kit/` |
+| Sabbath Kit | instrument, sampled doom/stoner drum kit + 12 grooves | Gpnq | 2.0.0 | `plugins/Sabbath Kit/` |
 
 Dusty Tape parameter order (permanent): Output, Sync, Division, Time, Feedback, Tone, Low Cut, Mix, Wow, Flutter,
 Drive, Hiss, Bits, Rate, Ping Pong.
@@ -52,4 +52,7 @@ Drive, Hiss, Bits, Rate, Ping Pong.
 Sabbath Kit parameter order (permanent): Master, Kick Tune, Kick Decay, Kick Level, Kick Beater, Snare Tune,
 Snare Decay, Snare Level, Snare Wires, Tom1 Tune/Decay/Level, Tom2 Tune/Decay/Level, Tom3 Tune/Decay/Level,
 Hat Tune/Decay/Level, Crash Tune/Decay/Level, Ride Tune/Decay/Level, Room, Room Size, Drive, Comp, Tone, Width,
-Humanize, Vel Sens. Notes: General MIDI drum map (MPC Classic pads).
+Humanize, Vel Sens, Groove, Groove Mode, Fill, Groove Vel (v2). Notes: General MIDI drum map laid out for the MPC
+Classic pads. v2 samples: AVL Drumkits "Red Zeppelin" (Glen MacArthur, CC BY-SA 3.0) in `Content/Samples`.
+Grooves live in `plugins/Sabbath Kit/src/grooves.h`; `gonzi/tools/export_grooves.cpp` writes them as MIDI files
+(`.sdk-tools/export_grooves "plugins/Sabbath Kit/Content/MIDI Grooves" 70`); `render_kit ... builtin` renders them.
