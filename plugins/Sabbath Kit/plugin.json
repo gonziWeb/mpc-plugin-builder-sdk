@@ -1,0 +1,17 @@
+{
+  "name": "Sabbath Kit",
+  "manufacturer": "Gonzi Audio",
+  "version": "1.0.0",
+  "format": "vst2",
+  "kind": "instrument",
+  "uid": "Gpnq",
+  "numInputs": 0,
+  "numOutputs": 2,
+  "category": "Drums",
+  "file32": "VST/sabbath-kit-arm32.so",
+  "file64": "VST/sabbath-kit-arm64.so",
+  "description": "Sabbath Kit: a synthesised acoustic drum kit for doom, stoner and sludge. Kick, snare, 3 toms, hats, crash and ride with membrane modelling, room, glue comp and tape drive.",
+  "author": "Gonzi Audio",
+  "url": "",
+  "license": "MIT"
+}

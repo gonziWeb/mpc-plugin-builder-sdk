@@ -1,0 +1,26 @@
+{
+  "kit": "amber",
+  "pages": [
+    { "name": "KIT",
+      "controls": [
+        { "param": "Kick Tune",  "widget": "knob" }, { "param": "Kick Decay",  "widget": "knob" }, { "param": "Kick Beater", "widget": "knob" }, { "param": "Kick Level",  "widget": "fader" },
+        { "param": "Snare Tune", "widget": "knob" }, { "param": "Snare Decay", "widget": "knob" }, { "param": "Snare Wires", "widget": "knob" }, { "param": "Snare Level", "widget": "fader" },
+        { "param": "Room",  "widget": "fader" }, { "param": "Room Size", "widget": "knob" }, { "param": "Width", "widget": "knob" }, { "param": "Master", "widget": "fader" },
+        { "param": "Comp",  "widget": "knob" },  { "param": "Drive", "widget": "knob" }, { "param": "Tone", "widget": "knob", "polarity": "bipolar" }, { "param": "Humanize", "widget": "knob" }
+      ] },
+    { "name": "TOMS",
+      "controls": [
+        { "param": "Tom1 Tune",  "widget": "knob" }, { "param": "Tom2 Tune",  "widget": "knob" }, { "param": "Tom3 Tune",  "widget": "knob" }, { "widget": "text", "text": "Tune" },
+        { "param": "Tom1 Decay", "widget": "knob" }, { "param": "Tom2 Decay", "widget": "knob" }, { "param": "Tom3 Decay", "widget": "knob" }, { "widget": "text", "text": "Decay" },
+        { "param": "Tom1 Level", "widget": "fader" }, { "param": "Tom2 Level", "widget": "fader" }, { "param": "Tom3 Level", "widget": "fader" }, { "widget": "text", "text": "Level" },
+        { "param": "Vel Sens", "widget": "knob" }, "empty", "empty", { "param": "Master", "widget": "fader" }
+      ] },
+    { "name": "CYMBALS",
+      "controls": [
+        { "param": "Hat Tune",   "widget": "knob" }, { "param": "Crash Tune",  "widget": "knob" }, { "param": "Ride Tune",  "widget": "knob" }, { "widget": "text", "text": "Tune" },
+        { "param": "Hat Decay",  "widget": "knob" }, { "param": "Crash Decay", "widget": "knob" }, { "param": "Ride Decay", "widget": "knob" }, { "widget": "text", "text": "Decay" },
+        { "param": "Hat Level",  "widget": "fader" }, { "param": "Crash Level", "widget": "fader" }, { "param": "Ride Level", "widget": "fader" }, { "widget": "text", "text": "Level" },
+        { "param": "Vel Sens", "widget": "knob" }, "empty", "empty", { "param": "Master", "widget": "fader" }
+      ] }
+  ]
+}
