@@ -1,0 +1,17 @@
+{
+  "name": "Dusty Tape",
+  "manufacturer": "Gonzi Audio",
+  "version": "1.0.0",
+  "format": "vst2",
+  "kind": "effect",
+  "uid": "G6pD",
+  "numInputs": 2,
+  "numOutputs": 2,
+  "category": "Effect",
+  "file32": "VST/dusty-tape-arm32.so",
+  "file64": "VST/dusty-tape-arm64.so",
+  "description": "Lo-fi tape echo: wow, flutter, saturation, hiss and crushed repeats.",
+  "author": "Gonzi Audio",
+  "url": "",
+  "license": "MIT"
+}

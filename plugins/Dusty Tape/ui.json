@@ -1,0 +1,86 @@
+{
+  "kit": "amber",
+  "pages": [
+    {
+      "name": "TAPE",
+      "controls": [
+        {
+          "param": "Sync",
+          "widget": "switch"
+        },
+        {
+          "param": "Division",
+          "widget": "slider",
+          "overlay": "menu",
+          "visibleWhen": {
+            "param": "Sync",
+            "choice": "On"
+          }
+        },
+        {
+          "param": "Time",
+          "widget": "knob",
+          "visibleWhen": {
+            "param": "Sync",
+            "choice": "Off"
+          }
+        },
+        {
+          "param": "Ping Pong",
+          "widget": "switch"
+        },
+        {
+          "param": "Feedback",
+          "widget": "knob"
+        },
+        {
+          "param": "Low Cut",
+          "widget": "knob"
+        },
+        {
+          "param": "Tone",
+          "widget": "knob"
+        },
+        {
+          "param": "Mix",
+          "widget": "fader"
+        }
+      ]
+    },
+    {
+      "name": "DUST",
+      "controls": [
+        {
+          "param": "Wow",
+          "widget": "knob"
+        },
+        {
+          "param": "Flutter",
+          "widget": "knob"
+        },
+        {
+          "param": "Drive",
+          "widget": "knob"
+        },
+        {
+          "param": "Hiss",
+          "widget": "knob"
+        },
+        {
+          "param": "Bits",
+          "widget": "knob"
+        },
+        {
+          "param": "Rate",
+          "widget": "knob"
+        },
+        "empty",
+        {
+          "param": "Output",
+          "widget": "fader",
+          "polarity": "bipolar"
+        }
+      ]
+    }
+  ]
+}
