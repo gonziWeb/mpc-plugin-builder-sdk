@@ -1,0 +1,4 @@
+Melodee by keremimo (github.com/keremimo/melodee at 165d177)
+GPL-3.0-only (the parts under other licences: LICENSING.md)
+upstream commit: 165d177
+These files are unchanged copies. build/gen/* were written by the firmware's own generators (its tools/).

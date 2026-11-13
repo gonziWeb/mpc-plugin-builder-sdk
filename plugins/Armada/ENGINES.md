@@ -1,0 +1,96 @@
+# Armada: the engines
+
+The number is the Engine parameter's value (1 = the first). E1.. are the engine's own parameters, in order; on the MPC
+each value starts with the name shown here.
+
+| # | Engine | From | Sounds | E1, E2, ... |
+|---|---|---|---|---|
+| 1 | Analog | Felucca (`ANALOG`) | 12 | WAVE, DTN, MIX, NOIS, CUT, RES, DRV, KTR |
+| 2 | FM6 | Felucca (`FM6`) | 8 | ALG, FB, MLVL, MRAT, MEG, VMOD, DTUN, SLOT |
+| 3 | Phase | Felucca (`PHASE`) | 6 | WAVE, WAVE2, DCW, ENV, DTN, LINE, SUB, FOLD |
+| 4 | LoFi | Felucca (`LOFI`) | 5 | CHIP, WAVE, DUTY, CRSH, SWP, VIB, ARP, TONE |
+| 5 | Sample | Felucca (`SAMPLE`) | 4 | SET, TUNE, BITS, LOOP, CUT, DRV |
+| 6 | Voice | Felucca (`VOICE`) | 4 | VOWL, VOWL2, TALK, SHIFT, BUZZ, BRTH, Q, RAND |
+| 7 | Trio | Felucca (`TRIO`) | 5 | WAVE, INT2, INT3, DTN, MODE, CUT, RES, PW |
+| 8 | Wheel | Felucca (`WHEEL`) | 5 | REG, SUB, BODY, TOP, PERC, CLICK, DRV, ROTR |
+| 9 | Grain | Felucca (`GRAIN`) | 4 | SRC, POS, SIZE, DENS, PTCH, SPRD, RAND, TONE |
+| 10 | Phys | Felucca (`PHYS`) | 9 | MODEL, STRC, BRIT, DAMP, POS, ACC, BOW, EXC |
+| 11 | Noise | Felucca (`NOISE`) | 4 | MODE, COLR, FREQ, RES, TRK, DENS, DRFT, CRSH |
+| 12 | Slice | Felucca (`SLICE`) | 2 | SRC, DIV, START, PTCH, MODE, REV, DCAY, TONE |
+| 13 | Drum | Felucca (`DRUM`) | 4 | KIT, TUNE, TONE, DECY, SNAP, ACC, KICK, DRV |
+| 14 | Pro-5 | Melodee (`PROPHET`) | 12 | CUT, RES, TUNA, TUNB, PWA, PWB, MIXA, MIXB |
+| 15 | SID | Melodee (`SID`) | 32 | MODEL, WAVE, STACK, PW, CUT, RES, MODE, DRIVE |
+| 16 | X0X Kit | Melodee (`DRUM`) | 6 | KIT, TUNE, TONE, DECY, SNAP, ACC, KICK, DRV |
+| 17 | Pro-600 | Guru-600 (`P600`) | 55 | A WAV, A FRQ, B WAV, B FRQ, CUT, RES, MIX, FENV |
+| 18 | OPX | Felucca OPX (`OPX`) | 8 | ALG, ATK, DEC, MLVL, FB, MRAT, DTUN, SLOT |
+| 19 | SEM | Caravel (`SEM`) | 8 | OSC1, OSC2, DTN, MIX, CUT, RES, STATE, VINT |
+| 20 | Hades | Caravel (`HADES`) | 8 | WAVE, PW, SUB1, SUB2, CUT, RES, DRV, BODY |
+| 21 | Drone | Caravel (`DRONE`) | 16 | SPREAD, DETUNE, COUPLE, TOPO, CHAR, DRIFT, RATE, TONE |
+| 22 | Ensemble | Caravel (`ENSEMB`) | 14 | REG, MORPH, TONE, DRIFT, ENS, RATE, TEXT, MIX |
+| 23 | OB-Z | Switch Blade (`OB-Z`) | 32 | WAVE, DTN, MIX, PW, CUT, RES, MODE, SLOP |
+| 24 | Void Wave | Switch Blade (`WAVE`) | 32 | TBL1, POS, WARP, CUT, RES, DRV |
+| 25 | Nano | Switch Blade (`NANO`) | 32 | WAVE, TUNE, DECY, ACC, CUT, RES, DRV, SQL |
+| 26 | Drift | Switch Blade (`JUNO`) | 32 | MIX, PW, DRFT, VAR, CUT, RES, DRV, KTR |
+| 27 | Swarm | Mini-Tone (`SWARM`) | 9 | WAVE, SWRM, OCT, DTN, MIX, ANIM, NOIS, CUT |
+| 28 | FM Tone | Mini-Tone (`FMTONE`) | 8 | ALGO, RAT C, RAT A, RAT B, HARM, DTN, FB, MIX |
+| 29 | Wavetone | Mini-Tone (`WAVETONE`) | 10 | WAV1, PD1, LEV1, TUN1, WAV2, PD2, LEV2, TUN2 |
+| 30 | FM Drum | Mini-Tone (`FMDRUM`) | 10 | TUNE, SWTM, SWDP, ALGO, WVC, WVAB, FB, FOLD |
+| 31 | SID Lite | Mini-Tone (`SID`) | 26 | WAVE, PW, MOD, RATIO, MODE, CUT, RES, MODEL |
+| 32 | Chip | Mini-Tone (`CHIP`) | 9 | TUNE, WAVE, SPD, DEC, OF2, OF3, OF4, OVER |
+| 33 | Dual VCO | Mini-Tone (`DUALVCO`) | 9 | TUNE, DET, DEC1, DEC2, CNFG, BEND, BAL, OVER |
+| 34 | Analog 4 | Mini-Tone (`ANALOG4`) | 8 | WAV1, PW1, TUN1, SUB, WAV2, PW2, TUN2, FIN2 |
+| 35 | Braids | Mini-Tone (`BRAIDS`) | 16 | SHAP, TIMB, COLR, SWP, BITS, RATE, DRFT, FINE |
+| 36 | TB-303 | Mini-Tone (`TB303`) | 8 | WAVE, CUT, RES, ENVM, DEC, ACNT, DRV, PW |
+| 37 | TR-808 | Mini-Tone (`TR808`) | 5 | TUNE, DECY, BTON, BATK, SNAP, DRV, VEL, CHOK |
+| 38 | Lizard | SQRL-1 (`LIZARD`) | 11 | MODE, SWP, WAVE, DTN, VCS, EDGE, CUT, RES |
+| 39 | Syllable | SQRL-1 (`SYLLABLE`) | 11 | CONS, VOWEL, LEN, SHIFT, BRTH, PICK, FALL, END |
+| 40 | Voder | SQRL-1 (`VODER`) | 4 | PEDAL, HISS, TILT, Q, VIB, GLIDE, STOPS, DRIFT |
+| 41 | Shock | SQRL-1 (`SHOCK`) | 8 | DRIVE, ENV, KEYF, LOSS, SUB, BRTH, EDGE, MAXS |
+| 42 | Golana | Golana (`GOLANA`) | 1 | WAVE, CTRL1, CTRL2, WAVE2, MOD, SEMI, TUNE, CUT |
+| 43 | Atlatl | Skiff Atlatl (`SYNTH`) | 127 | OSC A, SHAPE A, MOD, OSC B, SHAPE B, B TUNE, DETUNE, MIX |
+| 44 | Mini | Skiff Atlatl (`FMINI`) | 192 | CUT, EMPH, CNTR, F.ATK, F.DEC, F.SUS, MOD, SLOT |
+| 45 | Wavetable | Araminta (`WAVETABLE`) | 10 | WAVE, POS, FDBK, B>A, WAVE, POS, LEVEL, RATIO |
+| 46 | Drum-X | Araminta (`DRUM-X`) | 1 | MRPH, TUNE, TONE, DECY, NOIS, FM, FOLD, DRV |
+| 47 | Glitch | KRIECHSTROM (`GLCH`) | 48 | WAVE, CUT, RES, DRV, CRSH, GLCH, SIZE, PJMP |
+| 48 | Dirge | DIRGE (`DRONE`) | 7 | DTN, SUB, DRFT, WAVE, CUT, RES, DRV, BRTH |
+| 49 | Dirge Bass | DIRGE (`BASS`) | 6 | WAVE, DTN, SUB, CUT, RES, ENV, DCY, DRV |
+| 50 | 4-Op FM | Jangada (`DIGITAL`) | 11 | ALG, R2, R3, R4, IDX, MDEC, FB |
+| 51 | Robo | Jangada (`ROBO`) | 16 | MODE, FORM, PULS, DCAY, TRK, DRFT, CRSH, TONE |
+| 52 | Animal | JIANT FM (`ANIMAL`) | 24 | MODE, PRESS, CHAOS, SIZE, SWEEP, RATE, GROUP, TEMP |
+| 53 | Bytebeat | JIANT FM (`LOFI`) | 17 | CHIP, WAVE, DUTY, CRUSH, CUT, VIB, BEND, MASK |
+| 54 | Hybrid | Clipper (`HYBRID`) | 32 | CUT, RES, FENV, PTCH, M1, M2, M3, M4 |
+| 55 | Acid | Clipper (`ACID`) | 16 | WAVE, CUT, RES, ENV, DEC, ACC, DIST, SWP |
+| 56 | Solina | Clipper (`STRINGS`) | 16 | 16', 8', 4', ENS, CUT, RATE, SHP, RES |
+| 57 | Macro | Clipper (`MACRO`) | 24 | MODL, HARM, TIMB, MRPH, CUT, RES, DEC, LPG |
+| 58 | VPS | Clipper (`VPS`) | 10 | D, V, VENV, OSC2, CUT, RES, DTN, SUB |
+| 59 | Terrain | Clipper (`TERRAIN`) | 10 | TERR, RAD, X, Y, ORB, DRIFT, CUT, RES |
+| 60 | FMX | Clipper (`FMX`) | 16 | PTCH, ALG, MOD, FB, TIME, DTN, VEL, KTRK |
+| 61 | Wave Seq | Clipper (`WSEQ`) | 16 | SEQ, RATE, XFADE, LOOP, START, PITCH, CUT, RES |
+| 62 | Juno | Clipper (`JUNO`) | 17 | WAVE, PW, SUB, NOIS, HPF, CUT, RES, CHOR |
+| 63 | Vector | Clipper (`VECTOR`) | 18 | A, B, C, D, X, Y, MOVE, CUT |
+| 64 | OberVave | OberVave (`OBERVAVE`) | 64 | O1 WAVE, O1 PW, O1 LVL, NOISE, O2 WAVE, O2 PW, O2 LVL, O2 SEMI, SYNC, X-MOD, ENV>O2, O2 FINE, CUTOFF, RESO, F ENV, KEY TRK, F TYPE, MORPH, DRIVE, VEL>FLT, F ATK, F DEC, F SUS, F REL, VEL>AMP, LFO SHP, LFO PWM, LFO DLY, UNI VOX, VINTAGE, DLY TONE, REV PRE |
+| 65 | Shine On | Shine On (`SHINE ON`) | 32 | C.BASS, CELLO, VIOLA, VIOLIN, TRUMPET, HORN, SPLIT, OCTAVE, TONE, WARMTH, BRIGHT, VELOCITY, ENSEMBLE, ENS DEP, ENS RATE, ENS MIX, PHA RATE, PHA DEP, PHA FB, PHA MIX, VIB DLY, VINTAGE, DLY TONE, REV PRE |
+| 66 | P VA VCF | Plaits (`VA VCF`) | 1 | HARMONICS, TIMBRE, MORPH, FM ENV, TIMBRE ENV, MORPH ENV, DECAY, LPG COLOUR, AUX MIX |
+| 67 | P Phase Dist | Plaits (`PHASE DIST`) | 1 | HARMONICS, TIMBRE, MORPH, FM ENV, TIMBRE ENV, MORPH ENV, DECAY, LPG COLOUR, AUX MIX |
+| 68 | P 6-Op FM 1 | Plaits (`6-OP FM 1`) | 1 | HARMONICS, TIMBRE, MORPH, FM ENV, TIMBRE ENV, MORPH ENV, DECAY, LPG COLOUR, AUX MIX |
+| 69 | P 6-Op FM 2 | Plaits (`6-OP FM 2`) | 1 | HARMONICS, TIMBRE, MORPH, FM ENV, TIMBRE ENV, MORPH ENV, DECAY, LPG COLOUR, AUX MIX |
+| 70 | P 6-Op FM 3 | Plaits (`6-OP FM 3`) | 1 | HARMONICS, TIMBRE, MORPH, FM ENV, TIMBRE ENV, MORPH ENV, DECAY, LPG COLOUR, AUX MIX |
+| 71 | P Terrain | Plaits (`WAVE TERRAIN`) | 1 | HARMONICS, TIMBRE, MORPH, FM ENV, TIMBRE ENV, MORPH ENV, DECAY, LPG COLOUR, AUX MIX |
+| 72 | P String Mach | Plaits (`STRING MACH`) | 1 | HARMONICS, TIMBRE, MORPH, FM ENV, TIMBRE ENV, MORPH ENV, DECAY, LPG COLOUR, AUX MIX |
+| 73 | P Chiptune | Plaits (`CHIPTUNE`) | 1 | HARMONICS, TIMBRE, MORPH, FM ENV, TIMBRE ENV, MORPH ENV, DECAY, LPG COLOUR, AUX MIX |
+| 74 | P Pair of VA | Plaits (`PAIR OF VA`) | 1 | HARMONICS, TIMBRE, MORPH, FM ENV, TIMBRE ENV, MORPH ENV, DECAY, LPG COLOUR, AUX MIX |
+| 75 | P Waveshaper | Plaits (`WAVESHAPER`) | 1 | HARMONICS, TIMBRE, MORPH, FM ENV, TIMBRE ENV, MORPH ENV, DECAY, LPG COLOUR, AUX MIX |
+| 76 | P 2-Op FM | Plaits (`2-OP FM`) | 1 | HARMONICS, TIMBRE, MORPH, FM ENV, TIMBRE ENV, MORPH ENV, DECAY, LPG COLOUR, AUX MIX |
+| 77 | P Formant | Plaits (`GRAIN FORMANT`) | 1 | HARMONICS, TIMBRE, MORPH, FM ENV, TIMBRE ENV, MORPH ENV, DECAY, LPG COLOUR, AUX MIX |
+| 78 | P Harmonic | Plaits (`HARMONIC`) | 1 | HARMONICS, TIMBRE, MORPH, FM ENV, TIMBRE ENV, MORPH ENV, DECAY, LPG COLOUR, AUX MIX |
+| 79 | P Wavetable | Plaits (`WAVETABLE`) | 1 | HARMONICS, TIMBRE, MORPH, FM ENV, TIMBRE ENV, MORPH ENV, DECAY, LPG COLOUR, AUX MIX |
+| 80 | P Chords | Plaits (`CHORDS`) | 1 | HARMONICS, TIMBRE, MORPH, FM ENV, TIMBRE ENV, MORPH ENV, DECAY, LPG COLOUR, AUX MIX |
+| 81 | P Speech | Plaits (`SPEECH`) | 1 | HARMONICS, TIMBRE, MORPH, FM ENV, TIMBRE ENV, MORPH ENV, DECAY, LPG COLOUR, AUX MIX |
+| 82 | P Swarm | Plaits (`SWARM`) | 1 | HARMONICS, TIMBRE, MORPH, FM ENV, TIMBRE ENV, MORPH ENV, DECAY, LPG COLOUR, AUX MIX |
+| 83 | P Noise | Plaits (`FILTERED NOISE`) | 1 | HARMONICS, TIMBRE, MORPH, FM ENV, TIMBRE ENV, MORPH ENV, DECAY, LPG COLOUR, AUX MIX |
+| 84 | P Particle | Plaits (`PARTICLE`) | 1 | HARMONICS, TIMBRE, MORPH, FM ENV, TIMBRE ENV, MORPH ENV, DECAY, LPG COLOUR, AUX MIX |
+| 85 | P String | Plaits (`INHARM STRING`) | 1 | HARMONICS, TIMBRE, MORPH, FM ENV, TIMBRE ENV, MORPH ENV, DECAY, LPG COLOUR, AUX MIX |
+| 86 | P Modal | Plaits (`MODAL`) | 1 | HARMONICS, TIMBRE, MORPH, FM ENV, TIMBRE ENV, MORPH ENV, DECAY, LPG COLOUR, AUX MIX |
+| 87 | P Bass Drum | Plaits (`BASS DRUM`) | 1 | HARMONICS, TIMBRE, MORPH, FM ENV, TIMBRE ENV, MORPH ENV, DECAY, LPG COLOUR, AUX MIX |
+| 88 | P Snare | Plaits (`SNARE DRUM`) | 1 | HARMONICS, TIMBRE, MORPH, FM ENV, TIMBRE ENV, MORPH ENV, DECAY, LPG COLOUR, AUX MIX |
+| 89 | P Hi-Hat | Plaits (`HI-HAT`) | 1 | HARMONICS, TIMBRE, MORPH, FM ENV, TIMBRE ENV, MORPH ENV, DECAY, LPG COLOUR, AUX MIX |

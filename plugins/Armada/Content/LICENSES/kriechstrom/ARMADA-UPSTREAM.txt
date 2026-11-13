@@ -1,0 +1,4 @@
+KRIECHSTROM by Xforsa (github.com/Xforsa/kriechstrom at 3d6b48f)
+GPL-3.0-only (the parts under other licences: LICENSING.md)
+upstream commit: 3d6b48f
+These files are unchanged copies. build/gen/* were written by the firmware's own generators (its tools/).

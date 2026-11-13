@@ -1,0 +1,4 @@
+Shine On by zvenson (github.com/zvenson/shineon at e2cb631)
+GPL-3.0-only
+upstream commit: e2cb631
+These files are unchanged copies. build/gen/* were written by the firmware's own generators (its tools/).

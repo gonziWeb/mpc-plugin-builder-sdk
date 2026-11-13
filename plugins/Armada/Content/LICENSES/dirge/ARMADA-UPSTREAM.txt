@@ -1,0 +1,4 @@
+DIRGE by sinscum (github.com/sinscum/DIRGE at 59cf4b1)
+GPL-3.0-only (the parts under other licences: LICENSING.md)
+upstream commit: 59cf4b1
+These files are unchanged copies. build/gen/* were written by the firmware's own generators (its tools/).

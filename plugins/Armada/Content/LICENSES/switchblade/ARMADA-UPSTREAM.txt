@@ -1,0 +1,4 @@
+Switch Blade by OllieNicklinUK (github.com/OllieNicklinUK/switchblade at 9d07527)
+GPL-3.0-only (the parts under other licences: LICENSING.md)
+upstream commit: 9d07527
+These files are unchanged copies. build/gen/* were written by the firmware's own generators (its tools/).

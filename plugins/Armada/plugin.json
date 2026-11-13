@@ -1,0 +1,17 @@
+{
+  "name": "Armada",
+  "manufacturer": "Gonzi Audio",
+  "version": "1.0.0",
+  "format": "vst2",
+  "kind": "instrument",
+  "uid": "GlB7",
+  "numInputs": 0,
+  "numOutputs": 2,
+  "category": "Synth",
+  "file32": "VST/armada-arm32.so",
+  "file64": "VST/armada-arm64.so",
+  "description": "Armada: 89 synth engines from the open M-VAVE FM-1 firmwares (Felucca and its family) and Mutable Instruments' Plaits, in one instrument.",
+  "author": "Gonzi Audio",
+  "url": "https://github.com/gonziWeb/mpc-plugin-builder-sdk",
+  "license": "GPL-3.0-only"
+}

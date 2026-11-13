@@ -1,0 +1,326 @@
+{
+ "kit": "cyan",
+ "style": {
+  "background": "ff0b1420"
+ },
+ "pages": [
+  {
+   "name": "MAIN",
+   "controls": [
+    {
+     "param": "Engine",
+     "widget": "slider",
+     "overlay": "menu"
+    },
+    {
+     "param": "Sound",
+     "widget": "slider"
+    },
+    {
+     "param": "Master",
+     "widget": "knob"
+    },
+    {
+     "param": "Voice",
+     "widget": "switch"
+    },
+    {
+     "param": "Attack",
+     "widget": "fader"
+    },
+    {
+     "param": "Decay",
+     "widget": "fader"
+    },
+    {
+     "param": "Sustain",
+     "widget": "fader"
+    },
+    {
+     "param": "Release",
+     "widget": "fader"
+    },
+    {
+     "param": "Cutoff",
+     "widget": "knob"
+    },
+    {
+     "param": "Low Cut",
+     "widget": "knob"
+    },
+    {
+     "param": "Octave",
+     "widget": "knob"
+    },
+    {
+     "param": "Vel Sens",
+     "widget": "knob"
+    },
+    {
+     "param": "Glide",
+     "widget": "knob"
+    },
+    {
+     "param": "Detune",
+     "widget": "knob"
+    },
+    {
+     "param": "Spread",
+     "widget": "knob"
+    },
+    {
+     "param": "Bend",
+     "widget": "knob"
+    }
+   ]
+  },
+  {
+   "name": "ENGINE 1",
+   "controls": [
+    {
+     "param": "E1",
+     "widget": "slider"
+    },
+    {
+     "param": "E2",
+     "widget": "slider"
+    },
+    {
+     "param": "E3",
+     "widget": "slider"
+    },
+    {
+     "param": "E4",
+     "widget": "slider"
+    },
+    {
+     "param": "E5",
+     "widget": "slider"
+    },
+    {
+     "param": "E6",
+     "widget": "slider"
+    },
+    {
+     "param": "E7",
+     "widget": "slider"
+    },
+    {
+     "param": "E8",
+     "widget": "slider"
+    },
+    {
+     "param": "E9",
+     "widget": "slider"
+    },
+    {
+     "param": "E10",
+     "widget": "slider"
+    },
+    {
+     "param": "E11",
+     "widget": "slider"
+    },
+    {
+     "param": "E12",
+     "widget": "slider"
+    },
+    {
+     "param": "E13",
+     "widget": "slider"
+    },
+    {
+     "param": "E14",
+     "widget": "slider"
+    },
+    {
+     "param": "E15",
+     "widget": "slider"
+    },
+    {
+     "param": "E16",
+     "widget": "slider"
+    }
+   ]
+  },
+  {
+   "name": "ENGINE 2",
+   "controls": [
+    {
+     "param": "E17",
+     "widget": "slider"
+    },
+    {
+     "param": "E18",
+     "widget": "slider"
+    },
+    {
+     "param": "E19",
+     "widget": "slider"
+    },
+    {
+     "param": "E20",
+     "widget": "slider"
+    },
+    {
+     "param": "E21",
+     "widget": "slider"
+    },
+    {
+     "param": "E22",
+     "widget": "slider"
+    },
+    {
+     "param": "E23",
+     "widget": "slider"
+    },
+    {
+     "param": "E24",
+     "widget": "slider"
+    },
+    {
+     "param": "E25",
+     "widget": "slider"
+    },
+    {
+     "param": "E26",
+     "widget": "slider"
+    },
+    {
+     "param": "E27",
+     "widget": "slider"
+    },
+    {
+     "param": "E28",
+     "widget": "slider"
+    },
+    {
+     "param": "E29",
+     "widget": "slider"
+    },
+    {
+     "param": "E30",
+     "widget": "slider"
+    },
+    {
+     "param": "E31",
+     "widget": "slider"
+    },
+    {
+     "param": "E32",
+     "widget": "slider"
+    }
+   ]
+  },
+  {
+   "name": "MOD",
+   "controls": [
+    {
+     "param": "Flt Env",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "Pit Env",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "Shp Env",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "Flt Type",
+     "widget": "switch"
+    },
+    {
+     "param": "LFO Rate",
+     "widget": "knob"
+    },
+    {
+     "param": "LFO Wave",
+     "widget": "slider"
+    },
+    {
+     "param": "LFO Fade",
+     "widget": "knob"
+    },
+    {
+     "param": "LFO>Level",
+     "widget": "knob"
+    },
+    {
+     "param": "LFO>Pitch",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "LFO>Filter",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "LFO>Shape",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "Tune",
+     "widget": "knob",
+     "polarity": "bipolar"
+    }
+   ]
+  },
+  {
+   "name": "FX",
+   "controls": [
+    {
+     "param": "Drive",
+     "widget": "fader"
+    },
+    {
+     "param": "Chorus",
+     "widget": "fader"
+    },
+    {
+     "param": "Delay",
+     "widget": "fader"
+    },
+    {
+     "param": "Reverb",
+     "widget": "fader"
+    },
+    {
+     "param": "Dly Time",
+     "widget": "knob"
+    },
+    {
+     "param": "Dly Fdbk",
+     "widget": "knob"
+    },
+    {
+     "param": "Cho Rate",
+     "widget": "knob"
+    },
+    {
+     "param": "Cho Depth",
+     "widget": "knob"
+    },
+    {
+     "param": "Rev Size",
+     "widget": "knob"
+    },
+    {
+     "param": "Rev Damp",
+     "widget": "knob"
+    },
+    {
+     "param": "Rev Type",
+     "widget": "switch"
+    },
+    "empty"
+   ]
+  }
+ ]
+}

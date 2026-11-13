@@ -1,0 +1,4 @@
+SQRL-1 by hed0rah (github.com/hed0rah/sqrl-1 at 09070c4)
+GPL-3.0-only (the parts under other licences: LICENSING.md)
+upstream commit: 09070c4
+These files are unchanged copies. build/gen/* were written by the firmware's own generators (its tools/).

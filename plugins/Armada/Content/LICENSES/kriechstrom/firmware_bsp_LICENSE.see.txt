@@ -1,0 +1,1 @@
+The same text as ../felucca/MPL-2.0-felucca-bsp.txt

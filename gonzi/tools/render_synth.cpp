@@ -3,6 +3,8 @@
 // Usage: render_synth <plugin.so> <out.wav> <bpm> <program> [<program> ...]
 //   Each section: 4 bars (Dm - Bb - Gm - A), the chords held a bar each in the low octave, a melody on top, then a
 //   tail of 3 s for the reverb. Velocities vary. Sample rate 44100 (set MPC_RATE=48000 to test resampling).
+//   SYNTH_BARS=2 plays only the first bars, SYNTH_TAIL=1.2 sets the tail (s): short sections for plugins with many
+//   programs (Armada).
 #include <dlfcn.h>
 #include <algorithm>
 #include <chrono>
@@ -59,7 +61,16 @@ int main(int argc, char** argv)
     const double bpm = atof(argv[3]);
     std::vector<Ev> evs;
     song(evs);
-    const size_t total = (size_t)((16.0 * 60.0 / bpm + 3.0) * g_sr);
+    const double bars = getenv("SYNTH_BARS") ? std::max(1.0, std::min(4.0, atof(getenv("SYNTH_BARS")))) : 4.0;
+    const double tail = getenv("SYNTH_TAIL") ? atof(getenv("SYNTH_TAIL")) : 3.0;
+    {
+        std::vector<Ev> keep;                       // the notes of the bars played; the ones still held end with them
+        for (auto& x : evs)
+            if (x.beat < bars * 4.0 - 0.01) keep.push_back(x);
+            else if (!x.vel) keep.push_back({bars * 4.0 - 0.1, x.note, 0});
+        evs = keep;
+    }
+    const size_t total = (size_t)((bars * 4.0 * 60.0 / bpm + tail) * g_sr);
 
     fx->dispatcher(fx, effOpen, 0, 0, nullptr, 0);
     fx->dispatcher(fx, effSetSampleRate, 0, 0, nullptr, (float)g_sr);

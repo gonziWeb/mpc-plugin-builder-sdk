@@ -1,0 +1,4 @@
+OberVave by zvenson (github.com/zvenson/obervave at a1f660c)
+GPL-3.0-only
+upstream commit: a1f660c
+These files are unchanged copies. build/gen/* were written by the firmware's own generators (its tools/).
