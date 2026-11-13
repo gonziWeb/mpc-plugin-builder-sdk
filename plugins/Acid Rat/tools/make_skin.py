@@ -11,6 +11,7 @@ Acid Rat's own, drawn here with Pillow (nothing is downloaded, no outside artwor
   knob_*.png        a graphite cap in a chrome ring, an acid-green pointer and value arc
   fader_h_uni.png   a slot filling with green, a chrome cap
   seg*              a lit green key when on
+  STEP page         not from ui.json: a 16-step grid written here (step_tab), with its own small keys and lamps
 and writes the result to skins/ (the build copies skins/ verbatim). --preview OUT.png also draws what the MPC should
 show (the labels in a stand-in font: the MPC has its own). The same recipe as Grimoire's make_skin.py.
 """
@@ -295,6 +296,221 @@ def seg(w, h, on):
     return im.resize((w, h), Image.LANCZOS)
 
 
+# ------------------------------------------------------------------------------------------------- the STEP page
+# The third tab is not one of the generator's 4 x 4 pages: sixteen columns, one a step, written entry by entry.
+SX0, SW_STEP, KEY_W = 112, 70, 64                 # first column's x, column pitch, key width
+Y_HEAD, Y_NUM, Y_LAMP, Y_LAST, Y_BAR, H_BAR, Y_NOTE = 18, 64, 82, 102, 128, 190, 320
+Y_OCT, Y_GATE, Y_ACC, Y_SLIDE = (350, 378, 406), 442, 484, 526
+RED, RED_HI = (255, 70, 46), (255, 190, 170)
+NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B", "C'"]
+
+
+def key(w, h, on, text=None, glyph=None, lamp=False):
+    """a small key: lit green (or a red lamp) when on; a word or a drawn glyph in it"""
+    s = 4
+    im = Image.new("RGBA", (w * s, h * s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    box = (s, s, (w - 1) * s, (h - 1) * s)
+    rad = 3 * s
+    if lamp:                                    # the running light: a red bar
+        if on:
+            g = Image.new("RGBA", im.size, (0, 0, 0, 0))
+            ImageDraw.Draw(g).rounded_rectangle((6 * s, 3 * s, (w - 6) * s, (h - 3) * s), radius=rad, fill=RED + (200,))
+            im = Image.alpha_composite(im, g.filter(ImageFilter.GaussianBlur(3 * s)))
+            d = ImageDraw.Draw(im)
+            d.rounded_rectangle((10 * s, 5 * s, (w - 10) * s, (h - 5) * s), radius=2 * s, fill=RED + (255,))
+            d.line((14 * s, 6.5 * s, (w - 14) * s, 6.5 * s), fill=RED_HI + (255,), width=s)
+        else:
+            d.rounded_rectangle((10 * s, 5 * s, (w - 10) * s, (h - 5) * s), radius=2 * s, fill=(46, 18, 14, 255),
+                                outline=(70, 28, 22, 255), width=s)
+        return im.resize((w, h), Image.LANCZOS)
+    if on:
+        g = Image.new("RGBA", im.size, (0, 0, 0, 0))
+        ImageDraw.Draw(g).rounded_rectangle(box, radius=rad, fill=ACID + (110,))
+        im = Image.alpha_composite(im, g.filter(ImageFilter.GaussianBlur(2.5 * s)))
+        d = ImageDraw.Draw(im)
+        d.rounded_rectangle(box, radius=rad, fill=(52, 80, 6, 255), outline=ACID + (255,), width=round(1.5 * s))
+        ink = ACID_HI + (255,)
+    else:
+        d.rounded_rectangle(box, radius=rad, fill=(10, 11, 10, 235), outline=(54, 58, 54, 255), width=s)
+        ink = (120, 126, 120, 255)
+    cx, cy = w * s / 2, h * s / 2
+    if text:
+        size = min(15, h - 14) if len(text) <= 5 else min(12, h - 14)
+        d.text((cx, cy), text, font=font(MONO_BOLD, max(9, size) * s), fill=ink, anchor="mm")
+    q = (h - 12) * s / 2
+    if glyph == "up":
+        d.polygon(((cx, cy - q), (cx + q * 1.3, cy + q), (cx - q * 1.3, cy + q)), fill=ink)
+    elif glyph == "down":
+        d.polygon(((cx, cy + q), (cx + q * 1.3, cy - q), (cx - q * 1.3, cy - q)), fill=ink)
+    elif glyph == "mid":
+        d.rounded_rectangle((cx - q * 1.3, cy - 1.5 * s, cx + q * 1.3, cy + 1.5 * s), radius=s, fill=ink)
+    elif glyph == "note":                       # gate: a filled bar when the step plays, a hollow one for a rest
+        r = (cx - 16 * s, cy - 6 * s, cx + 16 * s, cy + 6 * s)
+        if on:
+            d.rounded_rectangle(r, radius=3 * s, fill=ink)
+        else:
+            d.rounded_rectangle(r, radius=3 * s, outline=ink, width=s)
+    elif glyph == "last":                       # the pattern's last step: a bracket closing on the right
+        if on:
+            d.line((cx - 14 * s, cy, cx + 12 * s, cy), fill=ink, width=2 * s)
+            d.line((cx + 12 * s, cy - 5 * s, cx + 12 * s, cy + 5 * s), fill=ink, width=3 * s)
+        else:
+            d.ellipse((cx - 2 * s, cy - 2 * s, cx + 2 * s, cy + 2 * s), fill=ink)
+    return im.resize((w, h), Image.LANCZOS)
+
+
+def step_art():
+    art = {}
+    for on in (True, False):
+        t = "on" if on else "off"
+        art["st_lamp_%s.png" % t] = key(KEY_W, 16, on, lamp=True)
+        art["st_last_%s.png" % t] = key(KEY_W, 20, on, glyph="last")
+        for g in ("up", "mid", "down"):
+            art["st_%s_%s.png" % (g, t)] = key(KEY_W, 26, on, glyph=g)
+        art["st_gate_%s.png" % t] = key(KEY_W, 36, on, glyph="note")
+        art["st_acc_%s.png" % t] = key(KEY_W, 36, on, text="ACC")
+        art["st_slide_%s.png" % t] = key(KEY_W, 36, on, text="SLIDE")
+        for n in range(8):
+            art["st_pat%d_%s.png" % (n + 1, t)] = key(50, 40, on, text=str(n + 1))
+        art["st_dice_%s.png" % t] = key(84, 40, on, text="DICE")
+        art["st_pattern_%s.png" % t] = key(96, 40, on, text="PATTERN")
+        art["st_write_%s.png" % t] = key(90, 40, on, text="WRITE")
+        art["st_copy_%s.png" % t] = key(104, 40, on, text="DICE>PAT")
+        art["st_clear_%s.png" % t] = key(90, 40, on, text="CLEAR")
+    return art
+
+
+HEAD_X = {"pattern": 112, "source": 560, "write": 772, "copy": 874, "clear": 990}
+
+
+def step_background(seed):
+    im = panel(seed).convert("RGBA")
+    im.alpha_composite(hazard(W, 9), (0, H - 9))       # the header needs the top edge: stripes at the bottom only
+    s = 2
+    ov = Image.new("RGBA", (W * s, H * s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(ov)
+    f_cap, f_small, f_tiny = font(MONO_BOLD, 13 * s), font(MONO_BOLD, 10 * s), font(MONO_BOLD, 9 * s)
+    # the header's captions
+    for cap, x in (("PATTERN", HEAD_X["pattern"]), ("PLAYS", HEAD_X["source"]), ("EDIT", HEAD_X["write"])):
+        d.text((x * s, 10 * s), cap, font=f_small, fill=ACID_DIM + (255,), anchor="lm")
+    d.text(((W - 30) * s, 10 * s), "ACID RAT", font=font(MONO_BOLD, 13 * s), fill=ACID + (255,), anchor="rm")
+    # the four beats: a frame each, the first step of each a little brighter
+    for g in range(4):
+        x0, x1 = (SX0 + g * 4 * SW_STEP - 3) * s, (SX0 + (g + 1) * 4 * SW_STEP - 4) * s
+        d.rounded_rectangle((x0, (Y_NUM - 6) * s, x1, (Y_SLIDE + 42) * s), radius=8 * s, fill=(0, 0, 0, 60),
+                            outline=ACID_DARK + (255,), width=s)
+    for st in range(16):
+        cx = (SX0 + st * SW_STEP + KEY_W / 2) * s
+        d.text((cx, (Y_NUM + 7) * s), "%d" % (st + 1), font=f_cap, fill=(ACID if st % 4 == 0 else ACID_DIM) + (255,), anchor="mm")
+    # the note lanes behind the bars: a line a semitone, the names on the left
+    for k in range(13):
+        y = (Y_BAR + H_BAR - k * H_BAR / 12) * s
+        black = k in (1, 3, 6, 8, 10)
+        d.line(((SX0 - 6) * s, y, (SX0 + 16 * SW_STEP - 6) * s, y), fill=(ACID_DARK if not black else (30, 40, 10)) + (160,), width=s)
+        d.text(((SX0 - 12) * s, y), NOTE_NAMES[k], font=f_tiny, fill=(ACID_DIM if not black else (70, 96, 14)) + (255,), anchor="rm")
+    # the rows' captions: plates on the left
+    def plate(text, yc):
+        tw = d.textlength(text, font=f_small)
+        d.rounded_rectangle((12 * s, (yc - 9) * s, 12 * s + tw + 14 * s, (yc + 9) * s), radius=3 * s, fill=ACID + (255,))
+        d.text((19 * s, yc * s), text, font=f_small, fill=(10, 12, 6, 255), anchor="lm")
+    plate("RUN", Y_LAMP + 8)
+    plate("LAST", Y_LAST + 10)
+    plate("NOTE", Y_BAR + 12)
+    plate("OCT", Y_OCT[1] + 13)
+    plate("GATE", Y_GATE + 18)
+    plate("ACCENT", Y_ACC + 18)
+    plate("SLIDE", Y_SLIDE + 18)
+    d.text((SX0 * s, 592 * s), "Q-LINKS SET THE NOTES  //  WRITE: PLAY THE NOTES ONE BY ONE ON THE PADS  //  SLIDE ONTO THE SAME NOTE = TIE",
+           font=f_tiny, fill=ACID_DIM + (255,), anchor="lm")
+    im = Image.alpha_composite(im, ov.resize((W, H), Image.LANCZOS))
+    return im.convert("RGB")
+
+
+def step_tab(index):
+    """the STEP tab as a dictionary (keys in the order the MPC's parser wants); index: parameter name -> number"""
+    def entry(name, typ, data, x, y, w, h, focus="No"):
+        return {"version": 2,
+                "componentData": {"version": 1, "name": name, "type": typ, "data": data},
+                "handle remapping": {"version": 1, "map": []},
+                "bounds": {"version": 1, "acceptsHWFocus": focus, "showWhenDataModelInvalid": "Show", "whenVisible": "Always",
+                           "boundsType": "Absolute", "bounds": "%d %d %d %d" % (x, y, w, h)}}
+
+    def button(name, img, handle, x, y, w, h, bid=1, group=1):
+        return entry(name, "Button", {"version": 2, "onImage": "st_%s_on.png" % img, "offImage": "st_%s_off.png" % img,
+                                      "buttonId": bid, "numButtonsInGroup": group, "handleName": handle,
+                                      "gestureBehaviour": "Instant"}, x, y, w, h)
+
+    P = lambda name: "Parameter %d" % index[name]
+    out = [entry("page", "Image", {"version": 2, "imageType": "Regular", "colour": "0", "image": "bg_step.jpg"}, 0, 0, W, H)]
+    # the header: pattern 1..8, what plays, write / copy / clear
+    for n in range(8):
+        out.append(button("pattern %d" % (n + 1), "pat%d" % (n + 1), P("Pattern"), HEAD_X["pattern"] + n * 54, Y_HEAD, 50, 40, n, 8))
+    out.append(button("plays dice", "dice", P("Source"), HEAD_X["source"], Y_HEAD, 84, 40, 0, 2))
+    out.append(button("plays pattern", "pattern", P("Source"), HEAD_X["source"] + 88, Y_HEAD, 96, 40, 1, 2))
+    out.append(button("write", "write", P("Write"), HEAD_X["write"], Y_HEAD, 90, 40))
+    out.append(button("copy", "copy", "ResetOnGestureEnd/" + P("Dice>Pat"), HEAD_X["copy"], Y_HEAD, 104, 40))
+    out.append(button("clear", "clear", "ResetOnGestureEnd/" + P("Clear"), HEAD_X["clear"], Y_HEAD, 90, 40))
+    style = {"version": 1, "font": {"version": 1, "name": "Titillium Web", "style": "SemiBold", "height": 22.0},
+             "colour": "ffffffff", "justification": "horizontallyCentred verticallyCentred", "case": "Original"}
+    for st in range(16):
+        x, n = SX0 + st * SW_STEP, st + 1
+        out.append(entry("run %d" % n, "Indicator", {"version": 1, "onImage": "st_lamp_on.png", "offImage": "st_lamp_off.png",
+                                                     "indicatorId": n, "numIndicatorsInGroup": 17, "handleName": P("Pos")},
+                         x, Y_LAMP, KEY_W, 16))
+        out.append(button("last %d" % n, "last", P("Steps"), x, Y_LAST, KEY_W, 20, st, 16))
+        out.append(entry("note %d" % n, "Slider", {"version": 2, "sliderType": "ColourBar", "direction": "Vertical",
+                                                   "backgroundColour": "66000000", "outlineColour": "ff2c3e08",
+                                                   "valueColour": "e0b7ff1a", "isBipolar": False,
+                                                   "handleName": P("S%d Note" % n)}, x + 8, Y_BAR, KEY_W - 16, H_BAR, "Yes"))
+        out.append(entry("note name %d" % n, "Label", {"version": 1, "textStyle": style, "type": "Value",
+                                                       "handleName": P("S%d Note" % n)}, x, Y_NOTE, KEY_W, 26))
+        for k, g in enumerate(("up", "mid", "down")):
+            out.append(button("oct %s %d" % (g, n), g, P("S%d Oct" % n), x, Y_OCT[k], KEY_W, 26, 2 - k, 3))
+        out.append(button("gate %d" % n, "gate", P("S%d Gate" % n), x, Y_GATE, KEY_W, 36))
+        out.append(button("accent %d" % n, "acc", P("S%d Acc" % n), x, Y_ACC, KEY_W, 36))
+        out.append(button("slide %d" % n, "slide", P("S%d Slide" % n), x, Y_SLIDE, KEY_W, 36))
+    root = {"version": 2, "actions": [],
+            "backgroundData": {"version": 1, "focussed": {"version": 1, "colour": "ff1e1d1e", "image": ""},
+                               "unfocussed": {"version": 1, "colour": "ff1e1d1e", "image": ""}},
+            "ignoreMousePresses": False, "disableCoarseDataWheel": False, "componentsData": out}
+    return {"version": 1, "tabName": "STEP", "fnKeyIndex": 2, "fnKeySubIndex": 0, "componentDefinition": root,
+            "qlinkBoundsData": ["%d %d %d %d" % (SX0 + g * 4 * SW_STEP - 3, Y_NUM - 6, 4 * SW_STEP - 1, Y_SLIDE + 48 - Y_NUM)
+                                for g in range(4)]}
+
+
+def add_step_page(txt, params):
+    """the STEP tab, its strings and its Q-Links into the generated files; returns the new TUI text"""
+    index = {p["name"]: i for i, p in enumerate(params)}
+    # the choices' names, for the parameters only this page shows (the generator wrote those of its own pages)
+    nums = [str(n) for n in range(1, 17)]
+    choices = {"Pattern": nums[:8], "Steps": nums, "Pos": ["-"] + nums}
+    for n in range(1, 17):
+        choices["S%d Note" % n] = NOTE_NAMES
+        choices["S%d Oct" % n] = ["Down", "Mid", "Up"]
+    add = ",\n".join(json.dumps({"key": "Parameter %d" % index[n], "value": v}) for n, v in choices.items()
+                     if '"key": "Parameter %d"' % index[n] not in txt)
+    key_ = '"replacementStrings": ['
+    k = txt.find(key_) + len(key_)
+    empty = txt[k:].lstrip().startswith("]")
+    txt = txt[:k] + "\n" + add + ("" if empty else ",") + txt[k:]
+    # the tab: appended to "tabs" (the last "]" before the two closing braces)
+    tab = json.dumps(step_tab(index), indent=4)
+    end = txt.rstrip().rfind("]")
+    txt = txt[:end].rstrip() + ",\n" + tab + "\n" + txt[end:]
+    # the knobs: the four banks are the four beats; the knobs set the notes
+    qpath = os.path.join(SKINS, "Q-Links.json")
+    q = json.load(open(qpath, encoding="utf-8"))
+    links = {}
+    for bank, first in enumerate((13, 9, 5, 1)):          # RowTopDown: 13..16, then 9..12, 5..8, 1..4
+        for k in range(4):
+            links["Q-Link %d" % (first + k)] = index["S%d Note" % (bank * 4 + k + 1)]
+    q["Screen Mode Q-Links"]["map"].append({"Tab": 3, "SubTab": 1, "Bank Direction": "RowTopDown",
+                                            "Q-Links": {"Q-Link %d" % n: links["Q-Link %d" % n] for n in range(1, 17)}})
+    json.dump(q, open(qpath, "w", encoding="utf-8"), indent=4)
+    return txt
+
+
 ART = {"knob_uni.png": lambda: knob_strip(False), "knob_bi.png": lambda: knob_strip(True),
        "fader_h_uni.png": fader_strip,
        "seg2_on.png": lambda: seg(122, 40, True), "seg2_off.png": lambda: seg(122, 40, False),
@@ -350,14 +566,25 @@ def build_skin():
         nl = txt.find("\n", k)
         indent = txt[nl + 1:txt.find("{", nl)]
         txt = txt[:k] + "\n" + image_entry(fname, indent) + "," + txt[k:]
+    print("make_skin: drawing the STEP page")
+    for f, im in step_art().items():
+        im.save(os.path.join(SKINS, f), optimize=True)
+    step_background(1002).save(os.path.join(SKINS, "bg_step.jpg"), quality=90, subsampling=0)
+    txt = add_step_page(txt, json.load(open(params, encoding="utf-8"))["params"])
     open(path, "w", encoding="utf-8").write(txt)
+    json.loads(txt)                             # it must still parse
     print("make_skin: skins/ written (%d files)" % len(os.listdir(SKINS)))
 
 
 # --------------------------------------------------------------------------------------------------- the preview
 def preview(out, tabs):
     tui = json.load(open(os.path.join(SKINS, "TUI.json"), encoding="utf-8"))["pageData"]
-    params = {p["name"]: p for p in json.load(open(os.path.join(PROJ, "build", "params.json")))["params"]}
+    plist = json.load(open(os.path.join(PROJ, "build", "params.json")))["params"]
+    params = {p["name"]: p for p in plist}
+
+    def bound(data):                            # the parameter a widget names itself ("... Parameter N")
+        h = data.get("handleName", "")
+        return plist[int(h.split("Parameter ")[1])] if "Parameter " in h else None
     defs = {d["key"]: d["value"] for d in tui["componentDefinitions"]["localComponentDefinitions"]}
     shots = []
 
@@ -367,6 +594,7 @@ def preview(out, tabs):
 
     def draw(im, d, cd, bx, by, p):
         t, data = cd["type"], cd["data"]
+        p = p or bound(data)
         norm = p["default"] if p else 0.0
         if t == "Image":
             im.paste(Image.open(os.path.join(SKINS, data["image"])).convert("RGBA"), (bx, by))
@@ -377,15 +605,12 @@ def preview(out, tabs):
             fr = st.crop((0, round(norm * (n - 1)) * fh, st.width, round(norm * (n - 1)) * fh + fh))
             im.alpha_composite(fr, (bx, by))
         elif t == "Button":
-            if p and p["kind"] == "choice":
-                on = round(norm * (len(p["choices"]) - 1)) == data["buttonId"]
-            else:
-                on = norm >= 0.5
+            on = round(norm * (max(data["numButtonsInGroup"], 2) - 1)) == data["buttonId"]
             b = Image.open(os.path.join(SKINS, data["onImage"] if on else data["offImage"])).convert("RGBA")
             im.alpha_composite(b, (bx + (cd["_w"] - b.width) // 2, by + (cd["_h"] - b.height) // 2))
         elif t == "Label":
             ts = data["textStyle"]
-            text = data.get("text") or (p["name"] if data.get("type") == "Name" else
+            text = data.get("text") or (p["name"] if p and data.get("type") == "Name" else
                                         ((p["display"] + (" " + p["label"] if p["label"] else "")) if p else ""))
             f = font(SANS, int(ts["font"]["height"] * 0.74))
             j = ts["justification"]
@@ -395,6 +620,16 @@ def preview(out, tabs):
                 d.text((bx + cd["_w"], by + cd["_h"] / 2), text, font=f, fill=colour(ts["colour"]), anchor="rm")
             else:
                 d.text((bx, by + cd["_h"] / 2), text, font=f, fill=colour(ts["colour"]), anchor="lm")
+        elif t == "Indicator":
+            on = round(norm * (data["numIndicatorsInGroup"] - 1)) == data["indicatorId"]
+            im.alpha_composite(Image.open(os.path.join(SKINS, data["onImage"] if on else data["offImage"])).convert("RGBA"), (bx, by))
+        elif t == "Slider" and data.get("sliderType") == "ColourBar":
+            lay = Image.new("RGBA", im.size, (0, 0, 0, 0))
+            dl = ImageDraw.Draw(lay)
+            dl.rectangle((bx, by, bx + cd["_w"], by + cd["_h"]), fill=colour(data["backgroundColour"]), outline=colour(data["outlineColour"]))
+            if norm > 0.01:
+                dl.rectangle((bx + 1, by + cd["_h"] - norm * (cd["_h"] - 2) - 1, bx + cd["_w"] - 1, by + cd["_h"] - 1), fill=colour(data["valueColour"]))
+            im.alpha_composite(lay)
         elif t == "Slider":                     # the MPC's own bar: a stand-in
             d.rounded_rectangle((bx, by, bx + cd["_w"], by + cd["_h"]), radius=4, fill=(40, 36, 32, 255))
             d.text((bx + 10, by + 22), p["name"] if p else "", font=font(SANS, 18), fill=(160, 150, 130, 255), anchor="lm")

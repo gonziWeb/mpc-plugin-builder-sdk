@@ -35,6 +35,8 @@ MIT material may be combined into a GPL-3.0 work; the plugin built from it is GP
 - The sources are compiled as C++ inside `namespace x0x`, in `AcidRat.cpp`.
 - New in `AcidRat.cpp`: MIDI handling (accent from velocity, slide from overlapping notes), a step clock that follows
   the MPC's tempo and song position, swing and gate length, the ping-pong delay, the master level, the programs.
+- New in 1.1.0, also in `AcidRat.cpp` and by Gonzi Audio: the step sequencer (eight 16-step patterns, Write, the
+  STEP page drawn by `tools/make_skin.py`). It is not X0X's pattern editor.
 - Not taken from X0X: its drum machines, break player, pattern editor, song mode, effects and everything specific to
   the FM-1.
 

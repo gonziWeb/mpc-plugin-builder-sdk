@@ -6,8 +6,10 @@ that writes acid lines and follows the MPC's tempo, and a ping-pong delay.
 
 The engine is the one of [X0X](https://github.com/charlesvestal/fm1-x0x) (a firmware for the M-VAVE FM-1), which is a
 port of Robin Schmidt's Open303 with Devilfish-style ranges; the line generator is X0X's TB-3PO. Licence:
-**GPL-3.0-only** - see `LICENSING.md` for who made what. Version 1.0.1, uid `G37u` (1.0.1 = 1.0.0 with its own
-screen design; sound, parameters and programs unchanged).
+**GPL-3.0-only** - see `LICENSING.md` for who made what. Version 1.1.0, uid `G37u`.
+
+1.1.0 adds the **step sequencer**: eight 16-step patterns you write yourself, on their own page. The sound, the first
+31 parameters and the first nine programs are those of 1.0; projects made with 1.0 load unchanged.
 
 ## Playing it
 
@@ -31,6 +33,40 @@ The line is fully determined by `Seed`, `Length`, `Density`, `Seq Accent`, `Seq 
 and `Base Oct`: the same settings always give the same line, and it is saved with the project as those settings.
 `Mutate` re-rolls about a quarter of the steps every 1, 2, 4 or 8 bars, so the line drifts; it starts again from the
 seed's line each time playback starts.
+
+## The step sequencer (page STEP)
+
+Set **Source** to **Pattern** (page STEP, "PLAYS", or page LINE) and the sequencer plays the pattern on the screen
+instead of the generator's line. Seq, Rate, Gate and Swing work as before: Seq = Keys plays it while a note is held
+(transposed by that note, 60 = as written), Seq = Song whenever the MPC plays. With Seq = Off nothing plays by itself.
+
+Sixteen columns, one a step, as on the original's panel:
+
+| Row | What it is |
+|---|---|
+| RUN | A red light on the step being played (and, in Write, on the step the next note goes to) |
+| LAST | Touch a step to make it the last one: the pattern's length, 1 to 16 |
+| NOTE | The step's note, C to the C above: drag the bar, or turn a Q-Link (the four banks are the four beats) |
+| OCT | Up / middle / down: the octave. Down starts at C1 (note 24), middle at C2, up at C3 |
+| GATE | Lit: the step plays. Dark: a rest |
+| ACCENT | Lit: the step is accented |
+| SLIDE | Lit: this step glides into the next one, which does not retrigger. A slide onto the same note is a tie |
+
+Along the top:
+
+- **PATTERN 1-8**: which pattern is shown, edited and played. Each has its own length. Pattern 1 starts as a classic
+  line in A, 2 to 8 as generated lines, all there to be overwritten. Notes 12 to 19 (the octave below the lowest pad
+  bank) choose pattern 1 to 8 as well, so a MIDI track can chain patterns. A change takes effect at once, at the step
+  the clock is on.
+- **WRITE**: step-writing. Turn it on and play notes on the pads: the first goes into step 1, the next into step 2,
+  and so on (velocity 100 or more = accent), each one sounding as you play it. After the last step Write turns itself
+  off. Notes are folded into the three octaves the pattern can hold (24 to 60). Rests, slides and corrections: on the
+  grid. While Write is on the sequencer waits.
+- **DICE>PAT**: copies the generator's current line (page LINE) into the pattern, to edit it by hand. Lines longer
+  than 16 steps are cut.
+- **CLEAR**: empties the pattern shown (all rests).
+
+The eight patterns are saved with the project. Programs change the sound, not the patterns.
 
 ## Parameters (in saved order - permanent)
 
@@ -67,14 +103,31 @@ seed's line each time playback starts.
 | 28 | Delay Mix | 0..100 % | Level of the echoes (the dry sound stays) |
 | 29 | Delay Time | 1/16, 1/8T, 1/8, 1/8D, 1/4 | Follows the MPC tempo |
 | 30 | Delay Fdbk | 0..90 % | |
+| 31 | Source | Dice / Pattern | Which line the sequencer plays |
+| 32 | Pattern | 1..8 | The pattern shown and played |
+| 33 | Steps | 1..16 | Its length |
+| 34 | Write | Off / On | Step-writing from the pads |
+| 35 | Dice>Pat | momentary | Copy the generated line into the pattern |
+| 36 | Clear | momentary | Empty the pattern |
+| 37 | Pos | -, 1..16 | Read-only: the step being played (drives the running light) |
+| 38-53 | S1..S16 Note | C..C' | |
+| 54-69 | S1..S16 Oct | Down / Mid / Up | |
+| 70-85 | S1..S16 Gate | Off / On | |
+| 86-101 | S1..S16 Acc | Off / On | |
+| 102-117 | S1..S16 Slide | Off / On | |
 
-Screen: page **ACID** (the sound: the four classic knobs in the top row) and page **LINE** (the generator).
+The 80 step parameters are the pattern on the screen. Choosing another pattern loads its steps into them, so do not
+automate them; automate `Pattern` instead.
+
+Screen: page **ACID** (the sound: the four classic knobs in the top row), page **LINE** (the generator) and page **STEP**
+(the step sequencer).
 The screen has its own look (black panel, acid-green print, chrome-ringed knobs), in `skins/`. It is generated, not
 hand-edited: after changing `ui.json` or the parameters, build, run `python3 "plugins/Acid Rat/tools/make_skin.py"`
 (needs Pillow; `--preview out.png` draws the pages without an MPC), then build again. Not yet checked on the MPC's
 screen; if it misbehaves there, delete `skins/` and rebuild to get the SDK's standard kit back.
 
-Programs: Acid Rat, Squelch, Hollow Square, Rat Bite, Soft Burn, Devil Slide, Dub Acid, Line: Keys, Line: Rave.
+Programs: Acid Rat, Squelch, Hollow Square, Rat Bite, Soft Burn, Devil Slide, Dub Acid, Line: Keys, Line: Rave,
+Pattern: Keys (hold a pad: pattern 1 plays).
 
 ## Tips
 
@@ -87,8 +140,14 @@ Programs: Acid Rat, Squelch, Hollow Square, Rat Bite, Soft Burn, Devil Slide, Du
 
 ## What is not there
 
-- No step editor on the screen: write your own lines in the MPC's sequencer (Seq = Off), or let the generator do it.
-  The generator's line cannot be edited step by step or exported as MIDI (plugins cannot send MIDI to the MPC).
+- Patterns cannot be exported as MIDI (plugins cannot send MIDI to the MPC), and there is no chaining inside the
+  plugin: chain patterns from a MIDI track with notes 12 to 19.
+- No separate tie: use a slide onto the same note. No per-step "time mode" entry as on the original; rests are set on
+  the grid.
+- The page STEP relies on things only an MPC can confirm: that the screen follows values the plugin changes itself
+  (the running light, the steps of a newly chosen pattern, Write going off), the lamp widget, and the two momentary
+  keys. If the screen does not follow, the pattern still plays and edits correctly; leaving the page and coming back,
+  or reloading the project, shows the right values.
 - No pitch bend, no mod wheel, no sustain pedal.
 - Of the Devilfish modifications only the slide time and accent decay ranges; the rest is a stock 303 model.
 - Mono signal apart from the delay's echoes.
@@ -97,8 +156,9 @@ Programs: Acid Rat, Squelch, Hollow Square, Rat Bite, Soft Burn, Devil Slide, Du
 
 One voice, 4x oversampled: about 0.5 % of a desktop core in the simulator, which should be a few percent of one core
 on a first-generation MPC One (estimated, not yet measured on the device). Checked: SDK validator, host simulator
-(block sizes 32-512, parameter sweep, state round trip), sequencer timing at several block sizes, with swing and across
-a loop, 44.1 and 48 kHz. Not yet checked on an MPC.
+(block sizes 32-512, parameter sweep, state round trip), also with the arm32 build under emulation; sequencer timing at
+several block sizes, with swing and across a loop; the step sequencer (play, light, Write, pattern change, Clear,
+Dice>Pat, save and load, a 1.0 state loading into 1.1); 44.1 and 48 kHz.
 
 ## Build
 
