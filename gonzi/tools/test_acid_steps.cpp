@@ -1,4 +1,4 @@
-// test_acid_steps.cpp - Acid Rat's step sequencer, 24 checks: pattern play, running light, Write, pattern change,
+// test_acid_steps.cpp - Acid Rat's step sequencer, 28 checks: pattern play, running light, Write, pattern change,
 // Clear, Dice>Pat, save and load. Exit code = number of failures.
 //   g++ -O2 -std=c++17 -Iframework gonzi/tools/test_acid_steps.cpp -o .sdk-tools/test_acid_steps -ldl
 //   .sdk-tools/test_acid_steps "plugins/Acid Rat/build/native/acid-rat.so"
@@ -109,6 +109,15 @@ int main(int, char** argv)
     check(b.pattern() == p1 && b.choice(SRC, 2) == 1, "a 1.0 program changes the sound, not the pattern or its source");
     b.fx->dispatcher(b.fx, effSetProgram, 0, 9, nullptr, 0); b.blocks(2);
     check(b.choice(SRC, 2) == 1 && b.choice(SEQ, 3) == 1, "program 10 selects the pattern in Keys mode");
+    // a 1.2 program is long enough to cover the step parameters: the plugin puts the pattern and its source back
+    b.set(PAT, 1 / 7.0f); b.blocks(2);
+    b.fx->dispatcher(b.fx, effSetProgram, 0, 12, nullptr, 0); b.blocks(3);
+    check(b.choice(PAT, 8) == 1 && b.pattern() == p2e && b.choice(SRC, 2) == 1 && b.get(119) > 0.4f, "a 1.2 program (Wobble: Sub 45) keeps the pattern shown, its steps and the source");
+    b.set(PAT, 4 / 7.0f); b.blocks(2); check(b.pattern() == p5, "and the other patterns");
+    b.fx->dispatcher(b.fx, effSetProgram, 0, 0, nullptr, 0); b.blocks(3);
+    check(b.get(119) < 0.01f && b.pattern() == p5 && b.choice(PAT, 8) == 4 && b.choice(SRC, 2) == 1, "program 1 turns the sub back off and still keeps the pattern");
+    b.fx->dispatcher(b.fx, effSetProgram, 0, 0, nullptr, 0); b.blocks(3);
+    check(b.pattern() == p5, "choosing the same program again keeps it too");
     printf(fails ? "%d FAILED\n" : "all passed\n", fails);
     return fails;
 }

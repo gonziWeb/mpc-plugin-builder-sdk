@@ -58,6 +58,8 @@ W, H = 1280, 628
 
 PAGES = {   # tab -> file, the rows' captions
     "ACID": ("bg_acid.jpg", ("FILTER", "VOICE", "DRIVE / SLIDE", "ECHO")),
+    "TONE": ("bg_tone.jpg", ("OSCILLATOR", "NOISE / FILTER", "LOW CUT / ENVELOPES", "AMP")),
+    "LFO": ("bg_lfo.jpg", ("LFO", "DEPTH")),
     "LINE": ("bg_line.jpg", ("LINE", "DICE", "KEY", "FEEL")),
 }
 
@@ -136,7 +138,7 @@ def background(tab, seed):
     ov = Image.new("RGBA", (W * s, H * s), (0, 0, 0, 0))
     d = ImageDraw.Draw(ov)
     f_cap, f_small = font(MONO_BOLD, 15 * s), font(MONO_BOLD, 10 * s)
-    for i, y in enumerate(YS):
+    for i, y in enumerate(YS[:len(rows)]):
         # a printed frame round the row, cut at the top left for its caption (a label plate: acid, black letters)
         x0, x1, y0, y1 = 12 * s, (W - 12) * s, (y - 9) * s, (y + SH + 7) * s
         d.rounded_rectangle((x0, y0, x1, y1), radius=10 * s, fill=(0, 0, 0, 70), outline=ACID_DARK + (255,), width=s)
@@ -427,7 +429,7 @@ def step_background(seed):
     return im.convert("RGB")
 
 
-def step_tab(index):
+def step_tab(index, fn_key):
     """the STEP tab as a dictionary (keys in the order the MPC's parser wants); index: parameter name -> number"""
     def entry(name, typ, data, x, y, w, h, focus="No"):
         return {"version": 2,
@@ -474,7 +476,7 @@ def step_tab(index):
             "backgroundData": {"version": 1, "focussed": {"version": 1, "colour": "ff1e1d1e", "image": ""},
                                "unfocussed": {"version": 1, "colour": "ff1e1d1e", "image": ""}},
             "ignoreMousePresses": False, "disableCoarseDataWheel": False, "componentsData": out}
-    return {"version": 1, "tabName": "STEP", "fnKeyIndex": 2, "fnKeySubIndex": 0, "componentDefinition": root,
+    return {"version": 1, "tabName": "STEP", "fnKeyIndex": fn_key, "fnKeySubIndex": 0, "componentDefinition": root,
             "qlinkBoundsData": ["%d %d %d %d" % (SX0 + g * 4 * SW_STEP - 3, Y_NUM - 6, 4 * SW_STEP - 1, Y_SLIDE + 48 - Y_NUM)
                                 for g in range(4)]}
 
@@ -495,7 +497,8 @@ def add_step_page(txt, params):
     empty = txt[k:].lstrip().startswith("]")
     txt = txt[:k] + "\n" + add + ("" if empty else ",") + txt[k:]
     # the tab: appended to "tabs" (the last "]" before the two closing braces)
-    tab = json.dumps(step_tab(index), indent=4)
+    ntabs = txt.count('"tabName"')                 # the generator's pages come first
+    tab = json.dumps(step_tab(index, ntabs), indent=4)
     end = txt.rstrip().rfind("]")
     txt = txt[:end].rstrip() + ",\n" + tab + "\n" + txt[end:]
     # the knobs: the four banks are the four beats; the knobs set the notes
@@ -505,7 +508,7 @@ def add_step_page(txt, params):
     for bank, first in enumerate((13, 9, 5, 1)):          # RowTopDown: 13..16, then 9..12, 5..8, 1..4
         for k in range(4):
             links["Q-Link %d" % (first + k)] = index["S%d Note" % (bank * 4 + k + 1)]
-    q["Screen Mode Q-Links"]["map"].append({"Tab": 3, "SubTab": 1, "Bank Direction": "RowTopDown",
+    q["Screen Mode Q-Links"]["map"].append({"Tab": ntabs + 1, "SubTab": 1, "Bank Direction": "RowTopDown",
                                             "Q-Links": {"Q-Link %d" % n: links["Q-Link %d" % n] for n in range(1, 17)}})
     json.dump(q, open(qpath, "w", encoding="utf-8"), indent=4)
     return txt
@@ -569,7 +572,7 @@ def build_skin():
     print("make_skin: drawing the STEP page")
     for f, im in step_art().items():
         im.save(os.path.join(SKINS, f), optimize=True)
-    step_background(1002).save(os.path.join(SKINS, "bg_step.jpg"), quality=90, subsampling=0)
+    step_background(1010).save(os.path.join(SKINS, "bg_step.jpg"), quality=90, subsampling=0)
     txt = add_step_page(txt, json.load(open(params, encoding="utf-8"))["params"])
     open(path, "w", encoding="utf-8").write(txt)
     json.loads(txt)                             # it must still parse

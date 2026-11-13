@@ -1,19 +1,250 @@
 {
-  "kit": { "theme": "mono", "accent": "ffb7ff1a" },
+  "kit": {
+    "theme": "mono",
+    "accent": "ffb7ff1a"
+  },
   "pages": [
-    { "name": "ACID",
+    {
+      "name": "ACID",
       "controls": [
-        { "param": "Cutoff", "widget": "knob" }, { "param": "Reso", "widget": "knob" }, { "param": "Env Mod", "widget": "knob" }, { "param": "Decay", "widget": "knob" },
-        { "param": "Accent", "widget": "knob" }, { "param": "Wave", "widget": "switch" }, { "param": "Tune", "widget": "knob", "polarity": "bipolar" }, { "param": "Master", "widget": "fader" },
-        { "param": "Drive", "widget": "knob" }, { "param": "Drive Type", "widget": "switch" }, { "param": "Slide", "widget": "knob" }, { "param": "Acc Decay", "widget": "knob" },
-        { "param": "Delay Mix", "widget": "fader" }, { "param": "Delay Time", "widget": "slider", "overlay": "menu" }, { "param": "Delay Fdbk", "widget": "knob" }, { "param": "Octave", "widget": "knob", "polarity": "bipolar" }
-      ] },
-    { "name": "LINE",
+        {
+          "param": "Cutoff",
+          "widget": "knob"
+        },
+        {
+          "param": "Reso",
+          "widget": "knob"
+        },
+        {
+          "param": "Env Mod",
+          "widget": "knob"
+        },
+        {
+          "param": "Decay",
+          "widget": "knob"
+        },
+        {
+          "param": "Accent",
+          "widget": "knob"
+        },
+        {
+          "param": "Wave",
+          "widget": "switch"
+        },
+        {
+          "param": "Tune",
+          "widget": "knob",
+          "polarity": "bipolar"
+        },
+        {
+          "param": "Master",
+          "widget": "fader"
+        },
+        {
+          "param": "Drive",
+          "widget": "knob"
+        },
+        {
+          "param": "Drive Type",
+          "widget": "switch"
+        },
+        {
+          "param": "Slide",
+          "widget": "knob"
+        },
+        {
+          "param": "Acc Decay",
+          "widget": "knob"
+        },
+        {
+          "param": "Delay Mix",
+          "widget": "fader"
+        },
+        {
+          "param": "Delay Time",
+          "widget": "slider",
+          "overlay": "menu"
+        },
+        {
+          "param": "Delay Fdbk",
+          "widget": "knob"
+        },
+        {
+          "param": "Octave",
+          "widget": "knob",
+          "polarity": "bipolar"
+        }
+      ]
+    },
+    {
+      "name": "TONE",
       "controls": [
-        { "param": "Seq", "widget": "switch" }, { "param": "Seed", "widget": "knob" }, { "param": "Length", "widget": "knob" }, { "param": "Rate", "widget": "slider", "overlay": "menu" },
-        { "param": "Density", "widget": "knob" }, { "param": "Seq Accent", "widget": "knob" }, { "param": "Seq Slide", "widget": "knob" }, { "param": "Mutate", "widget": "slider", "overlay": "menu" },
-        { "param": "Root", "widget": "slider", "overlay": "menu" }, { "param": "Scale", "widget": "slider", "overlay": "menu" }, { "param": "Base Oct", "widget": "knob" }, { "param": "Oct Range", "widget": "knob" },
-        { "param": "Gate", "widget": "knob" }, { "param": "Swing", "widget": "knob" }, { "param": "Acc Vel", "widget": "knob" }, { "param": "Source", "widget": "switch" }
-      ] }
+        {
+          "param": "Blend",
+          "widget": "knob"
+        },
+        {
+          "param": "Pulse W",
+          "widget": "knob"
+        },
+        {
+          "param": "Sub",
+          "widget": "knob"
+        },
+        {
+          "param": "Sub Oct",
+          "widget": "switch"
+        },
+        {
+          "param": "Noise",
+          "widget": "knob"
+        },
+        {
+          "param": "Cut Shift",
+          "widget": "knob",
+          "polarity": "bipolar"
+        },
+        {
+          "param": "Key Track",
+          "widget": "knob"
+        },
+        {
+          "param": "Filter FM",
+          "widget": "knob"
+        },
+        {
+          "param": "Low Cut",
+          "widget": "knob"
+        },
+        {
+          "param": "Env Attack",
+          "widget": "knob"
+        },
+        {
+          "param": "Acc Sweep",
+          "widget": "knob"
+        },
+        {
+          "param": "Amp Attack",
+          "widget": "knob"
+        },
+        {
+          "param": "Amp Decay",
+          "widget": "knob"
+        },
+        {
+          "param": "Release",
+          "widget": "knob"
+        }
+      ]
+    },
+    {
+      "name": "LFO",
+      "controls": [
+        {
+          "param": "LFO Shape",
+          "widget": "slider",
+          "overlay": "menu"
+        },
+        {
+          "param": "LFO Sync",
+          "widget": "switch"
+        },
+        {
+          "param": "LFO Rate",
+          "widget": "knob"
+        },
+        {
+          "param": "LFO Div",
+          "widget": "slider",
+          "overlay": "menu"
+        },
+        {
+          "param": "LFO>Cut",
+          "widget": "knob"
+        },
+        {
+          "param": "LFO>Pitch",
+          "widget": "knob"
+        },
+        {
+          "param": "LFO>PW",
+          "widget": "knob"
+        }
+      ]
+    },
+    {
+      "name": "LINE",
+      "controls": [
+        {
+          "param": "Seq",
+          "widget": "switch"
+        },
+        {
+          "param": "Seed",
+          "widget": "knob"
+        },
+        {
+          "param": "Length",
+          "widget": "knob"
+        },
+        {
+          "param": "Rate",
+          "widget": "slider",
+          "overlay": "menu"
+        },
+        {
+          "param": "Density",
+          "widget": "knob"
+        },
+        {
+          "param": "Seq Accent",
+          "widget": "knob"
+        },
+        {
+          "param": "Seq Slide",
+          "widget": "knob"
+        },
+        {
+          "param": "Mutate",
+          "widget": "slider",
+          "overlay": "menu"
+        },
+        {
+          "param": "Root",
+          "widget": "slider",
+          "overlay": "menu"
+        },
+        {
+          "param": "Scale",
+          "widget": "slider",
+          "overlay": "menu"
+        },
+        {
+          "param": "Base Oct",
+          "widget": "knob"
+        },
+        {
+          "param": "Oct Range",
+          "widget": "knob"
+        },
+        {
+          "param": "Gate",
+          "widget": "knob"
+        },
+        {
+          "param": "Swing",
+          "widget": "knob"
+        },
+        {
+          "param": "Acc Vel",
+          "widget": "knob"
+        },
+        {
+          "param": "Source",
+          "widget": "switch"
+        }
+      ]
+    }
   ]
 }

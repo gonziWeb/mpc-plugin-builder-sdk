@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-3.0-only */
 /* From X0X (github.com/charlesvestal/fm1-x0x 512c0da, firmware/src/dsp/bass303.c), changed for Acid Rat (Gonzi Audio,
- * 2026-11-12): host sample rate instead of a fixed 44.1 kHz, fractional pots. Changes are marked "Acid Rat". */
+ * 2026-11-12): host sample rate instead of a fixed 44.1 kHz, fractional pots. Changes are marked "Acid Rat".
+ * 2026-11-13 (Acid Rat 1.2): the extensions of bass303_ext_t, marked "Acid Rat 1.2"; see bass303.h. */
 /* Portions Copyright (C) 2026 Kerem Kilic (Ellic Studio) */
 /* The render in passes over sub-blocks, the drive in passes, the oversampling loop per wave, the fixed
  * coefficients shared by every instance (bass303_k) and the cold paths' maths out of line: after Optimist
@@ -98,7 +99,7 @@ static void env_tables(bass303_t *b)
     powers(b->env_pw, b->env_c);
     b->g1[0] = b->g2[0] = 0.0f;
     for (m = 1; m <= BASS303_CTRL; m++) {
-        b->g1[m] = bass303_k.rc1_c * b->g1[m - 1] + (1.0f - bass303_k.rc1_c) * b->env_pw[m];
+        b->g1[m] = b->x.rc1_c * b->g1[m - 1] + (1.0f - b->x.rc1_c) * b->env_pw[m];    /* Acid Rat 1.2: the instance's (stock: bass303_k.rc1_c) */
         b->g2[m] = bass303_k.rc2_c * b->g2[m - 1] + (1.0f - bass303_k.rc2_c) * b->env_pw[m];
     }
 }
@@ -345,6 +346,83 @@ static void fixed_init(void)
     bass303_k.ready = 1;
 }
 
+/* ---- Acid Rat 1.2: the extensions ------------------------------------------------------------------------ */
+static void ext_flags(bass303_t *b)
+{
+    b->x.on = b->x.blend > 0.0f || b->x.sub > 0.0f || b->x.noise > 0.0f || !b->x.pw_stock || b->x.fm > 0.0f;
+    b->x.cut_ext = b->x.cut_mul != 1.0f || b->x.track > 0.0f || b->x.sweep != 1.0f;
+}
+
+void bass303_ext_osc(bass303_t *b, float blend, float sub, int sub_oct, float noise)
+{
+    b->x.blend = fm_clampf(blend, 0.0f, 1.0f);
+    b->x.sub = fm_clampf(sub, 0.0f, 1.0f);
+    b->x.sub_oct = sub_oct == 2 ? 2 : 1;
+    b->x.noise = fm_clampf(noise, 0.0f, 1.0f);
+    ext_flags(b);
+}
+
+/* the square is -tanh(F (2p - 1) + O): its soft edge sits at p = 0.5 - O / 2F, so O sets the duty. Mean and
+ * edge height as fixed_init computes them for the stock O. */
+void bass303_ext_duty(bass303_t *b, float duty)
+{
+    if (duty <= 0.0f) {
+        b->x.pw_stock = 1;
+        b->x.pw_off = 4.37f;
+        b->x.pw_dc = bass303_k.sq_dc;
+        b->x.pw_h = bass303_k.sq_h;
+    } else {
+        const float F = c_db2lin(36.9f), O = F * (1.0f - 2.0f * fm_clampf(duty, 0.05f, 0.95f));
+        const float lp = (F + O) + (c_log2f(1.0f + c_expf(-2.0f * (F + O))) * FM_LN2);
+        const float lm = (F - O) + (c_log2f(1.0f + c_expf(-2.0f * (F - O))) * FM_LN2);
+        b->x.pw_stock = 0;
+        b->x.pw_off = O;
+        b->x.pw_dc = -(lp - lm) / (2.0f * F);
+        b->x.pw_h = fm_tanhf(F + O) + fm_tanhf(F - O);
+    }
+    ext_flags(b);
+}
+
+void bass303_ext_filter(bass303_t *b, float cut_mul, float track, float fm, float sweep)
+{
+    b->x.cut_mul = fm_clampf(cut_mul, 0.0625f, 16.0f);
+    b->x.track = fm_clampf(track, 0.0f, 1.0f);
+    b->x.fm = fm_clampf(fm, 0.0f, 1.0f);
+    b->x.sweep = fm_clampf(sweep, 0.0f, 2.0f);
+    ext_flags(b);
+}
+
+void bass303_ext_pitch(bass303_t *b, float mul) { b->x.pitch_mul = fm_clampf(mul, 0.25f, 4.0f); }
+
+void bass303_ext_env(bass303_t *b, float env_att, float amp_att, float amp_dec, float rel)
+{
+    b->x.rc1_c = env_att <= 3.0f ? bass303_k.rc1_c : rc_coeff(env_att, BASS303_SR);
+    powers(b->x.rc1_pw, b->x.rc1_c);
+    env_tables(b);
+    b->x.att_on = amp_att > 0.0f;
+    if (b->x.att_on)
+        powers(b->x.att_pw, rc_coeff(amp_att * (1.0f / 4.6f), BASS303_SR));    /* 99 % after amp_att */
+    else
+        b->x.attacking = 0;
+    powers(b->x.ampd_pw, rc_coeff(amp_dec, BASS303_SR));
+    b->x.rel_stock = rel <= 0.0f;
+    if (!b->x.rel_stock)
+        powers(b->x.rel_pw, rc_coeff(rel, BASS303_SR));
+    b->x.amp_ext = b->x.att_on || !b->x.rel_stock || amp_dec != 1230.0f;
+}
+
+static void ext_neutral(bass303_t *b)
+{
+    b->x.rng = 0x2545f491u;
+    b->x.cut_mul = b->x.sweep = b->x.pitch_mul = 1.0f;
+    bass303_ext_osc(b, 0.0f, 0.0f, 1, 0.0f);
+    bass303_ext_duty(b, 0.0f);
+    b->x.rc1_c = bass303_k.rc1_c;                 /* (env_tables needs it before bass303_ext_env runs) */
+    powers(b->x.rc1_pw, b->x.rc1_c);
+    powers(b->x.ampd_pw, rc_coeff(1230.0f, BASS303_SR));
+    b->x.rel_stock = 1;
+}
+
 void bass303_init(bass303_t *b)
 {
     uint8_t *p = (uint8_t *)b;
@@ -355,6 +433,7 @@ void bass303_init(bass303_t *b)
         p[k] = 0;
     if (!bass303_k.ready)
         fixed_init();
+    ext_neutral(b);                              /* Acid Rat 1.2 */
     b->drv_type = -1;
     for (i = 0; i < BASS303_NPARAMS; i++)
         bass303_set(b, i, (float)params[i].def);
@@ -675,8 +754,12 @@ static BASS303_PASS void run_control(bass303_t *b, bass303_cs_t *cs, float *ab, 
     float inc = b->c_inc, f_b0 = b->c_b0, k = b->c_k, g2 = b->c_g2, a = b->c_a;
     const float osc_freq = b->osc_freq, acc = b->accent_gain;
     const float scaler = b->env_scaler, offset = b->env_offset, cutoff = b->cutoff, r = b->reso;
-    const float *amp_pw = b->gate ? bass303_k.ampd_pw : b->amp_acc ? bass303_k.ampa_pw : bass303_k.ampn_pw;
-    const float amp_boost = b->gate ? 0.45f + 4.0f * acc : 0.0f;
+    /* Acid Rat 1.2: the instance's decay; its release when one is set (stock: bass303_k.ampd_pw, ampa_pw / ampn_pw) */
+    const float *amp_pw = b->gate ? b->x.ampd_pw : !b->x.rel_stock ? b->x.rel_pw : b->amp_acc ? bass303_k.ampa_pw : bass303_k.ampn_pw;
+    const float pmul = b->x.pitch_mul;
+    const int cut_ext = b->x.cut_ext, att_on = b->x.att_on, amp_ext = b->x.amp_ext;
+    /* (Acid Rat 1.2: with a release of its own the boost stays and fades with the amp) */
+    const float amp_boost = b->gate || !b->x.rel_stock ? 0.45f + 4.0f * acc : 0.0f;
     /* the overload guard's lite mode: no oversampling; a change of rate jumps to the new rate's
      * coefficients (snap) rather than gliding between the two rates' values */
     const int lite = BASS303_LITE && b->lite;
@@ -688,13 +771,18 @@ static BASS303_PASS void run_control(bass303_t *b, bass303_cs_t *cs, float *ab, 
 
         e0 = b->env_y;                                         /* main envelope: y *= c */
         b->env_y = e0 * b->env_pw[m];
-        b->rc1_y = bass303_k.rc1_pw[m] * b->rc1_y + b->g1[m] * e0;    /* RC followers of it */
+        b->rc1_y = b->x.rc1_pw[m] * b->rc1_y + b->g1[m] * e0;         /* RC followers of it (Acid Rat 1.2: the instance's) */
         b->rc2_y = bass303_k.rc2_pw[m] * b->rc2_y + (acc > 0.0f ? b->g2[m] * e0 : 0.0f);
         b->slew_y = osc_freq + b->slew_pw[m] * (b->slew_y - osc_freq);
-        if (b->amp_trig) {                                     /* attack 0: 1, then decay */
+        if (b->amp_trig && !att_on) {                          /* attack 0: 1, then decay */
             b->amp_y = amp_pw[m - 1];
             b->amp_trig = 0;
+        } else if (b->amp_trig || (b->x.attacking && b->gate)) {   /* Acid Rat 1.2: an attack, from where the amp is */
+            b->amp_trig = 0;
+            b->amp_y = 1.0f - (1.0f - b->amp_y) * b->x.att_pw[m];
+            b->x.attacking = b->amp_y < 0.99f;
         } else {
+            b->x.attacking = 0;
             b->amp_y *= amp_pw[m];
         }
         if (lite != b->lite_cur) {
@@ -702,8 +790,19 @@ static BASS303_PASS void run_control(bass303_t *b, bass303_cs_t *cs, float *ab, 
             b->snap = 1;
         }
         n_inc = b->slew_y * (1.0f / fso);
-        n_a = b->amp_y + amp_boost * b->env_y;
-        fc = cutoff * fm_exp2f(scaler * (b->rc1_y - offset) + acc * b->rc2_y);   /* n1 = n2 = 1 */
+        if (pmul != 1.0f)                                      /* Acid Rat 1.2 */
+            n_inc *= pmul;
+        if (!amp_ext)
+            n_a = b->amp_y + amp_boost * b->env_y;
+        else                                                   /* Acid Rat 1.2: the boost follows the amp's attack, decay, release */
+            n_a = b->amp_y * (1.0f + amp_boost * b->env_y);
+        if (!cut_ext) {
+            fc = cutoff * fm_exp2f(scaler * (b->rc1_y - offset) + acc * b->rc2_y);   /* n1 = n2 = 1 */
+        } else {                                               /* Acid Rat 1.2: sweep scale, multiplier, key tracking */
+            fc = cutoff * b->x.cut_mul * fm_exp2f(scaler * (b->rc1_y - offset) + b->x.sweep * (acc * b->rc2_y));
+            if (b->x.track > 0.0f)
+                fc *= fm_exp2f(b->x.track * c_log2f(b->slew_y * (1.0f / 110.0f)));
+        }
         fc = fm_clampf(fc, 200.0f, 20000.0f);
         /* TeeBeeFilter::calculateCoefficientsApprox4, TB_303 branch only (the a1 polynomial
          * it computes first is overwritten there, so it is skipped) */
@@ -725,8 +824,11 @@ static BASS303_PASS void run_control(bass303_t *b, bass303_cs_t *cs, float *ab, 
             d_a = (n_a - a) * rm;
             if (b->trig) {               /* a trigger jumps pitch and amp in Open303: no ramp */
                 inc = n_inc;
-                a = n_a;
-                d_inc = d_a = 0.0f;
+                d_inc = 0.0f;
+                if (!att_on) {           /* (Acid Rat 1.2: with an attack the amp ramps) */
+                    a = n_a;
+                    d_a = 0.0f;
+                }
             }
         }
         b->trig = 0;
@@ -835,12 +937,110 @@ static BASS303_PASS void run_ladder(bass303_t *b, const bass303_cs_t *cs, float 
     ladder_samples(b, cs, x, n, BASS303_OS);
 }
 
+/* Acid Rat 1.2: the oscillator with the other wave blended in, a variable square duty, a sub-oscillator (a
+ * polyBLEP square one or two octaves down) and white noise; then the highpass as in osc_samples */
+static BASS303_PASS void run_osc_ext(bass303_t *b, const bass303_cs_t *cs, float *hb, int n)
+{
+    const float hp1_b0 = bass303_k.hp1_b0, hp1_a1 = bass303_k.hp1_a1;
+    const float O = b->x.pw_off, sq_dc = b->x.pw_dc, sq_h2 = 0.5f * b->x.pw_h;
+    const float blend = b->x.blend, own = 1.0f - blend, sub = 0.5f * b->x.sub, noise = b->x.noise;
+    const float sub_ratio = b->x.sub_oct == 2 ? 0.25f : 0.5f;
+    const int square = b->wave, need_saw = !square || blend > 0.0f, need_sq = square || blend > 0.0f;
+    float phase = b->phase, p2 = b->x.sub_phase, hp1x = b->hp1_x1, hp1y = b->hp1_y1;
+    uint32_t rng = b->x.rng;
+    int i, q;
+    for (i = 0; i < n; i++) {
+        const float inc = cs[i].inc, inc2 = inc * sub_ratio;
+        for (q = 0; q < BASS303_OS; q++) {
+            float saw = 0.0f, sq = 0.0f, s, t, ym;
+            if (need_saw) {
+                t = phase + 0.5f;
+                if (t >= 1.0f)
+                    t -= 1.0f;
+                saw = -(t + t - 1.0f - blep(t, inc));
+            }
+            if (need_sq)
+                sq = 0.5f * (fm_tanhf(69.98419960f * (phase + phase - 1.0f) + O) + sq_dc - sq_h2 * blep(phase, inc));
+            s = square ? own * sq + blend * saw : own * saw + blend * sq;
+            phase += inc;
+            if (phase >= 1.0f)
+                phase -= 1.0f;
+            if (sub > 0.0f) {
+                t = p2 + 0.5f;
+                if (t >= 1.0f)
+                    t -= 1.0f;
+                s += sub * ((p2 < 0.5f ? 1.0f : -1.0f) + blep(p2, inc2) - blep(t, inc2));
+                p2 += inc2;
+                if (p2 >= 1.0f)
+                    p2 -= 1.0f;
+            }
+            if (noise > 0.0f) {
+                rng ^= rng << 13;
+                rng ^= rng >> 17;
+                rng ^= rng << 5;
+                s += noise * ((float)(int32_t)rng * (1.0f / 2147483648.0f));
+            }
+
+            ym = hp1_b0 * (s - hp1x) + hp1_a1 * hp1y;
+            hp1x = s;
+            hp1y = ym;
+            *hb++ = ym;
+        }
+    }
+    b->phase = phase;
+    b->x.sub_phase = p2;
+    b->x.rng = rng;
+    b->hp1_x1 = hp1x;
+    b->hp1_y1 = hp1y;
+}
+
+/* Acid Rat 1.2: the ladder with its cutoff coefficient moved by the signal going in (filter FM) */
+static BASS303_PASS void run_ladder_ext(bass303_t *b, const bass303_cs_t *cs, float *x, int n)
+{
+    const float fb_b0 = bass303_k.fbhp_b0, fb_a1 = bass303_k.fbhp_a1, fm = b->x.fm;
+    float y1 = b->f_y1, y2 = b->f_y2, y3 = b->f_y3, y4 = b->f_y4, fbx = b->fb_x1, fby = b->fb_y1;
+    int i, q;
+    for (i = 0; i < n; i++) {
+        const float f_b0 = cs[i].f_b0, k = cs[i].k, g2 = cs[i].g2;
+        for (q = 0; q < BASS303_OS; q++) {
+            /* the signal going in opens the filter: the coefficient runs from its own value (input at its
+             * lowest) up to three times that at full depth, never past the top of the stock range. Upwards only:
+             * the feedback k is the one computed for the unmodulated cutoff, which is the right amount at the
+             * bottom of the swing and too little above it, so the modulation can only take resonance away. The
+             * last stage is bounded all the same. */
+            const float in = *x, u = fm_clampf(0.5f * in + 0.5f, 0.0f, 1.25f);
+            const float g = fm_minf(f_b0 * (1.0f + 2.0f * fm * u), 0.25f);
+            float t = k * y4;
+            fby = fb_b0 * (t - fbx) + fb_a1 * fby;
+            fbx = t;
+            t = in - fby;
+            y1 += 2.0f * g * (t - y1 + y2);
+            y2 += g * (y1 - 2.0f * y2 + y3);
+            y3 += g * (y2 - 2.0f * y3 + y4);
+            y4 = fm_clampf(y4 + g * (y3 - 2.0f * y4), -4.0f, 4.0f);
+            *x++ = g2 * y4;
+        }
+    }
+    b->f_y1 = y1;
+    b->f_y2 = y2;
+    b->f_y3 = y3;
+    b->f_y4 = y4;
+    b->fb_x1 = fbx;
+    b->fb_y1 = fby;
+}
+
 /* pass 1: the voice, nos values a sample into osb */
 static void run_voice(bass303_t *b, float *ab, float *osb, int n, int nos)
 {
     bass303_cs_t cs[BASS303_SUB];
     run_control(b, cs, ab, n);
-    if (nos == BASS303_OS) {
+    if (nos == BASS303_OS && b->x.on) {                        /* Acid Rat 1.2 */
+        run_osc_ext(b, cs, osb, n);
+        if (b->x.fm > 0.0f)
+            run_ladder_ext(b, cs, osb, n);
+        else
+            run_ladder(b, cs, osb, n);
+    } else if (nos == BASS303_OS) {
         if (b->wave)
             run_osc_sqr(b, cs, osb, n);
         else

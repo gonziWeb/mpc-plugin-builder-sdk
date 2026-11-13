@@ -37,6 +37,7 @@
 #include <cstdio>
 #include <cstdint>
 #include <cstring>
+#include <string>
 #include <stdint.h>
 #include <utility>
 #include <vector>
@@ -111,8 +112,32 @@ enum ParamIndex
     kStepGate  = kStepOct + 16,             // 16 x note or rest
     kStepAcc   = kStepGate + 16,            // 16 x accent
     kStepSlide = kStepAcc + 16,             // 16 x slide into the next step
-    kNumParams = kStepSlide + 16            // 118
+    // ---- 1.2.0: beyond the 303 (appended). Every default leaves the sound as it was. ----
+    kBlend = kStepSlide + 16,   // 118  %, the other wave mixed in
+    kSub,          // %, sub-oscillator level (a square below the note)
+    kSubOct,       // 1 or 2 octaves down
+    kPulseW,       // %, the square's duty (46.9 = the 303's)
+    kNoise,        // %, white noise into the filter
+    kCutShift,     // octaves added to the cutoff
+    kKeyTrack,     // %, how far the cutoff follows the note
+    kFiltFM,       // %, the oscillator moves the cutoff at audio rate
+    kLowCut,       // Hz, highpass after the synth (20 = off)
+    kEnvAttack,    // ms, the filter envelope's rise (3 = the 303's)
+    kAccSweep,     // %, size of the accent's filter sweep (100 = the 303's)
+    kAmpAttack,    // ms, volume fade-in (0 = none)
+    kAmpDecay,     // ms, how the volume falls while the note is held (1230 = the 303's)
+    kRelease,      // ms, after the note ends (0 = the 303's: 1 ms, 50 ms accented)
+    kLfoShape,     // Sine / Triangle / Saw / Square / S&H
+    kLfoSync,      // Free (Hz) / Sync (tempo division)
+    kLfoRate,      // Hz, when Free
+    kLfoDiv,       // length of one cycle, when Sync
+    kLfoCut,       // %, LFO to cutoff (100 = +-3 octaves)
+    kLfoPitch,     // semitones, LFO to pitch
+    kLfoPW,        // %, LFO to the square's duty
+    kNumParams     // 139
 };
+constexpr float kStockDuty = 46.9f, kStockAmpDecay = 1230.0f;
+constexpr float kLfoDivBeats[10] = {32.0f, 16.0f, 8.0f, 4.0f, 2.0f, 1.0f, 0.5f, 0.25f, 2.0f / 3.0f, 1.0f / 3.0f};
 
 constexpr int kNumPatterns = 8, kPatSteps = 16;
 
@@ -212,8 +237,32 @@ public:
             slotLen_[pt].store(kPatSteps, std::memory_order_relaxed);
         }
 
-        // Built-in programs: the defaults with a few values changed each. They set the sound and the generator and
-        // leave the patterns alone (a program is only as long as the parameters it names).
+        // ---- 1.2.0: beyond the 303
+        addParam(mpc::floatParam ("blend",     "Blend",      0.0f, 100.0f, 0.0f, "%", 0));
+        addParam(mpc::floatParam ("sub",       "Sub",        0.0f, 100.0f, 0.0f, "%", 0));
+        addParam(mpc::choiceParam("suboct",    "Sub Oct",    {"1 down", "2 down"}, 0));
+        addParam(mpc::floatParam ("pulsew",    "Pulse W",    5.0f, 95.0f, kStockDuty, "%", 1));
+        addParam(mpc::floatParam ("noise",     "Noise",      0.0f, 100.0f, 0.0f, "%", 0));
+        addParam(mpc::floatParam ("cutshift",  "Cut Shift",  -3.0f, 3.0f, 0.0f, "oct", 2));
+        addParam(mpc::floatParam ("keytrack",  "Key Track",  0.0f, 100.0f, 0.0f, "%", 0));
+        addParam(mpc::floatParam ("filtfm",    "Filter FM",  0.0f, 100.0f, 0.0f, "%", 0));
+        addParam(mpc::logParam   ("lowcut",    "Low Cut",    20.0f, 800.0f, 20.0f, "", 0));      // (unit in formatValue)
+        addParam(mpc::logParam   ("envattack", "Env Attack", 3.0f, 300.0f, 3.0f, "ms", 0));
+        addParam(mpc::floatParam ("accsweep",  "Acc Sweep",  0.0f, 200.0f, 100.0f, "%", 0));
+        addParam(mpc::floatParam ("ampattack", "Amp Attack", 0.0f, 500.0f, 0.0f, "", 0, 0.4f));
+        addParam(mpc::logParam   ("ampdecay",  "Amp Decay",  30.0f, 8000.0f, kStockAmpDecay, "ms", 0));
+        addParam(mpc::floatParam ("release",   "Release",    0.0f, 2000.0f, 0.0f, "", 0, 0.4f));
+        addParam(mpc::choiceParam("lfoshape",  "LFO Shape",  {"Sine", "Triangle", "Saw", "Square", "S&H"}, 0));
+        addParam(mpc::choiceParam("lfosync",   "LFO Sync",   {"Free", "Sync"}, 1));
+        addParam(mpc::logParam   ("lforate",   "LFO Rate",   0.05f, 30.0f, 2.0f, "Hz", 2));
+        addParam(mpc::choiceParam("lfodiv",    "LFO Div",    {"8 bars", "4 bars", "2 bars", "1 bar", "1/2", "1/4", "1/8", "1/16", "1/4T", "1/8T"}, 3));
+        addParam(mpc::floatParam ("lfocut",    "LFO>Cut",    0.0f, 100.0f, 0.0f, "%", 0));
+        addParam(mpc::floatParam ("lfopitch",  "LFO>Pitch",  0.0f, 12.0f, 0.0f, "st", 2, 0.5f));
+        addParam(mpc::floatParam ("lfopw",     "LFO>PW",     0.0f, 100.0f, 0.0f, "%", 0));
+
+        // Built-in programs: the defaults with a few values changed each. A program sets every parameter (so that
+        // choosing "Acid Rat" also turns the sub-oscillator and the LFO back off), which includes the step
+        // parameters: reset() puts the patterns, the pattern shown and the sequencer's source back afterwards.
         program("Acid Rat",      {});
         program("Squelch",       {{kCutoff, 520}, {kReso, 88}, {kEnvMod, 78}, {kDecay, 330}, {kAccent, 80}});
         program("Hollow Square", {{kWave, 1}, {kCutoff, 430}, {kReso, 72}, {kEnvMod, 62}, {kDecay, 520}, {kAccent, 70}});
@@ -231,6 +280,28 @@ public:
                                   {kMutate, 3}, {kMaster, -8}});
         program("Pattern: Keys", {{kSeqMode, kSeqKeys}, {kSource, 1}, {kCutoff, 540}, {kReso, 84}, {kEnvMod, 74}, {kDecay, 340},
                                   {kAccent, 80}});
+        // 1.2.0
+        program("Sub Rat",       {{kCutoff, 480}, {kReso, 72}, {kEnvMod, 62}, {kDecay, 380}, {kAccent, 75}, {kSub, 75}, {kLowCut, 20},
+                                  {kDrive, 25}, {kDriveType, 2}, {kMaster, -8.5f}});
+        program("PWM Hollow",    {{kWave, 1}, {kCutoff, 700}, {kReso, 58}, {kEnvMod, 48}, {kDecay, 700}, {kLfoPW, 75}, {kLfoSync, 0},
+                                  {kLfoRate, 0.45f}, {kAmpDecay, 4000}, {kRelease, 120}, {kMaster, 2.5f}});
+        program("Wobble",        {{kCutoff, 420}, {kReso, 74}, {kEnvMod, 20}, {kDecay, 900}, {kSub, 45}, {kBlend, 30}, {kLfoCut, 42},
+                                  {kLfoSync, 1}, {kLfoDiv, 6}, {kLfoShape, 0}, {kAmpDecay, 6000}, {kRelease, 60}, {kMaster, 1.5f}});
+        program("Screamer",      {{kCutoff, 620}, {kReso, 86}, {kEnvMod, 70}, {kDecay, 360}, {kAccent, 85}, {kFiltFM, 55},
+                                  {kKeyTrack, 70}, {kCutShift, 0.6f}, {kAccSweep, 160}, {kDrive, 35}, {kDriveType, 2}, {kMaster, -11.5f}});
+        program("Slow Riser",    {{kCutoff, 420}, {kReso, 80}, {kEnvMod, 80}, {kDecay, 1100}, {kEnvAttack, 140}, {kAmpAttack, 60},
+                                  {kRelease, 350}, {kAmpDecay, 5000}, {kBlend, 40}, {kDelayMix, 25}, {kMaster, 1.5f}});
+        program("S&H Robot",     {{kWave, 1}, {kCutoff, 560}, {kReso, 82}, {kEnvMod, 35}, {kDecay, 300}, {kLfoShape, 4}, {kLfoSync, 1},
+                                  {kLfoDiv, 7}, {kLfoCut, 38}, {kNoise, 8}, {kPulseW, 30}, {kMaster, 4}});
+    }
+
+    bool formatValue(int index, float plain, std::string& out) override
+    {
+        char buf[32];
+        if (index == kLowCut)         { if (plain <= 20.5f) out = "Off"; else { std::snprintf(buf, sizeof buf, "%d Hz", (int)std::lround(plain)); out = buf; } return true; }
+        if (index == kAmpAttack)      { if (plain < 0.5f) out = "Off"; else { std::snprintf(buf, sizeof buf, "%d ms", (int)std::lround(plain)); out = buf; } return true; }
+        if (index == kRelease)        { if (plain < 0.5f) out = "303"; else { std::snprintf(buf, sizeof buf, "%d ms", (int)std::lround(plain)); out = buf; } return true; }
+        return false;
     }
 
     void prepare(double sampleRate, int maxBlockSize) override
@@ -258,9 +329,26 @@ public:
         seqRunning_ = false; seqSounding_ = false; seqPrevSlide_ = false; offCountdown_ = -1;
         beat_ = 0.0; wasPlaying_ = false; lastMode_ = -1; patternKey_ = 0; lastMutBar_ = INT64_MIN;
 
+        for (float& v : deepSet_) v = -1e9f;      // the engine was initialised: give it the 1.2 settings again
+        lowCutX_ = lowCutY_ = 0.0f; lfoPhase_ = 0.0f; lfoCycle_ = 0; lfoHold_ = 0.0f;
+
         // The patterns: after a state load the saved ones are waiting in the staging copy (see loadExtraState).
+        // Otherwise a program may just have written defaults over the step parameters: the patterns, which pattern
+        // is shown and (unless the program chooses it) what the sequencer plays are put back from what the audio
+        // thread last had. When no program was applied this changes nothing.
+        const bool staged = stagedReady_.exchange(false, std::memory_order_acq_rel);
+        if (!staged)
+        {
+            const int prog = currentProgram();
+            if (!(prog >= 0 && prog < (int)programSetsSource_.size() && programSetsSource_[(size_t)prog]))
+                setParam(kSource, (float)source_);
+            setParam(kPattern, (float)curPattern_);
+            setParam(kWrite, 0.0f);
+            showPattern(curPattern_);
+        }
+        seenProgram_ = currentProgram();
         curPattern_ = mpc::clamp(getInt(kPattern), 0, kNumPatterns - 1);
-        if (stagedReady_.exchange(false, std::memory_order_acq_rel))
+        if (staged)
         {
             for (int pt = 0; pt < kNumPatterns; ++pt)
             {
@@ -329,7 +417,8 @@ public:
         accVel_ = getInt(kAccVel);
         octaveShift_ = 12 * getInt(kOctave);
         updatePattern();
-        updateStepSequencer();
+        if (currentProgram() == seenProgram_) updateStepSequencer();   // (a program is being applied: wait for reset)
+        updateDeep();
         seqLen_ = source_ == 1 ? patSteps_ : mpc::clamp(getInt(kLength), 1, NSTEPS);
 
         // ---- the clock: the MPC's song position while it plays, our own count otherwise --------------------------
@@ -367,6 +456,11 @@ public:
         const float delayMix = get(kDelayMix) * 0.01f, delayFb = get(kDelayFdbk) * 0.01f;
         const float gainTarget = dbToGain(get(kMaster));
         const float lpC = 1.0f - std::exp(-6.2832f * 4500.0f / sr), hpC = 1.0f - std::exp(-6.2832f * 160.0f / sr);
+        const float lowCut = get(kLowCut);
+        lowCutC_ = lowCut > 20.5f ? std::exp(-6.2832f * lowCut / sr) : 0.0f;
+        lfoSynced_ = getInt(kLfoSync) == 1;
+        lfoDivBeats_ = (double)kLfoDivBeats[mpc::clamp(getInt(kLfoDiv), 0, 9)];
+        lfoStep_ = get(kLfoRate) / sr;
         const size_t mask = delayL_.size() - 1;
 
         // ---- render, cut at MIDI events and sequencer steps ------------------------------------------------------
@@ -377,13 +471,23 @@ public:
             while (mi < ctx.numMidiEvents && ctx.midi[mi].sampleOffset <= pos) handleMidi(ctx.midi[mi++], writing_ ? (int)kSeqOff : mode);
             int until = runSequencer(writing_ ? (int)kSeqOff : mode, playing);      // frames until the sequencer needs us again
             int n = numFrames - pos;
-            if (n > kChunk) n = kChunk;
+            if (n > chunk_) n = chunk_;
             if (until < n) n = until;
             if (mi < ctx.numMidiEvents && ctx.midi[mi].sampleOffset - pos < n) n = ctx.midi[mi].sampleOffset - pos;
             if (n < 1) n = 1;
 
             smoothPots(n, sr);
+            modulate(n, sr);
             x0x::bass303_render(&eng_, mono, n);
+            if (lowCutC_ > 0.0f)                      // Low Cut: a one-pole highpass after the synth
+                for (int i = 0; i < n; ++i)
+                {
+                    const float x = mono[i];
+                    lowCutY_ = lowCutC_ * (lowCutY_ + x - lowCutX_);
+                    lowCutX_ = x;
+                    mono[i] = lowCutY_;
+                }
+            if (std::fabs(lowCutY_) < 1e-18f) lowCutY_ = 0.0f;      // (its tail: stop before the numbers get tiny)
 
             for (int i = 0; i < n; ++i)
             {
@@ -664,6 +768,78 @@ private:
         }
     }
 
+    // ---- beyond the 303 (1.2.0) --------------------------------------------------------------------------------
+    // Once per block: what does not move within a block. The engine is only told when a value changed.
+    void updateDeep()
+    {
+        const float osc[4] = {get(kBlend) * 0.01f, get(kSub) * 0.01f, (float)(getInt(kSubOct) + 1), get(kNoise) * 0.006f};
+        if (std::memcmp(osc, deepSet_, sizeof osc) != 0)
+        {
+            std::memcpy(deepSet_, osc, sizeof osc);
+            x0x::bass303_ext_osc(&eng_, osc[0], osc[1], (int)osc[2], osc[3]);
+        }
+        const float env[4] = {get(kEnvAttack), get(kAmpAttack) < 0.5f ? 0.0f : get(kAmpAttack),
+                              std::fabs(get(kAmpDecay) - kStockAmpDecay) < 1.0f ? kStockAmpDecay : get(kAmpDecay),
+                              get(kRelease) < 0.5f ? 0.0f : get(kRelease)};
+        if (std::memcmp(env, deepSet_ + 4, sizeof env) != 0)
+        {
+            std::memcpy(deepSet_ + 4, env, sizeof env);
+            x0x::bass303_ext_env(&eng_, env[0] <= 3.05f ? 3.0f : env[0], env[1], env[2], env[3]);
+        }
+        cutShift_ = get(kCutShift);
+        keyTrack_ = get(kKeyTrack) * 0.01f; filtFM_ = get(kFiltFM) * 0.01f; accSweep_ = get(kAccSweep) * 0.01f;
+        lfoCut_ = get(kLfoCut) * 0.03f;                       // octaves
+        lfoPitch_ = get(kLfoPitch) / 12.0f;                   // octaves
+        lfoPW_ = get(kLfoPW) * 0.0045f;                       // duty
+        dutyBase_ = std::fabs(get(kPulseW) - kStockDuty) < 0.05f ? 0.0f : get(kPulseW) * 0.01f;   // 0: the 303's own
+        lfoShape_ = getInt(kLfoShape);
+        const bool lfoOn = lfoCut_ > 0.0f || lfoPitch_ > 0.0f || lfoPW_ > 0.0f;
+        chunk_ = lfoOn ? 16 : kChunk;                         // a moving LFO: finer steps
+    }
+
+    // The LFO, -1..1, at the clock's position (Sync) or its own phase (Free).
+    float lfoValue()
+    {
+        double ph; int64_t cycle;
+        if (lfoSynced_) { const double c = beat_ / lfoDivBeats_; cycle = (int64_t)std::floor(c); ph = c - (double)cycle; }
+        else            { ph = (double)lfoPhase_; cycle = lfoCycle_; }
+        const float p = (float)ph;
+        switch (lfoShape_)
+        {
+            case 1:  return p < 0.5f ? 4.0f * p - 1.0f : 3.0f - 4.0f * p;         // triangle
+            case 2:  return 1.0f - 2.0f * p;                                       // saw, falling
+            case 3:  return p < 0.5f ? 1.0f : -1.0f;                               // square
+            case 4:                                                                // sample and hold: one value a cycle
+            {
+                uint32_t h = (uint32_t)cycle * 2654435761u + 0x9e3779b9u;
+                h ^= h >> 15; h *= 2246822519u; h ^= h >> 13;
+                return (float)(h & 0xffff) * (2.0f / 65535.0f) - 1.0f;
+            }
+            default: return std::sin(6.2831853f * p);
+        }
+    }
+
+    // Before each piece of audio: cutoff shift and the LFO's three destinations.
+    void modulate(int n, float sr)
+    {
+        (void)sr;
+        const bool lfoOn = lfoCut_ > 0.0f || lfoPitch_ > 0.0f || lfoPW_ > 0.0f;
+        const float v = lfoOn ? lfoValue() : 0.0f;
+        const float filt[4] = {cutShift_ + v * lfoCut_, keyTrack_, filtFM_, accSweep_};
+        if (std::memcmp(filt, deepSet_ + 8, sizeof filt) != 0)
+        {
+            std::memcpy(deepSet_ + 8, filt, sizeof filt);
+            x0x::bass303_ext_filter(&eng_, filt[0] == 0.0f ? 1.0f : std::exp2(filt[0]), filt[1], filt[2], filt[3]);
+        }
+        const float pitch = v * lfoPitch_;
+        if (pitch != deepSet_[12]) { deepSet_[12] = pitch; x0x::bass303_ext_pitch(&eng_, pitch == 0.0f ? 1.0f : std::exp2(pitch)); }
+        float duty = dutyBase_;
+        if (lfoPW_ > 0.0f) duty = mpc::clamp((dutyBase_ > 0.0f ? dutyBase_ : kStockDuty * 0.01f) + v * lfoPW_, 0.05f, 0.95f);
+        if (duty != deepSet_[13]) { deepSet_[13] = duty; x0x::bass303_ext_duty(&eng_, duty); }
+        lfoPhase_ += lfoStep_ * (float)n;
+        if (lfoPhase_ >= 1.0f) { lfoPhase_ -= std::floor(lfoPhase_); ++lfoCycle_; }
+    }
+
     // ---- the step sequencer (1.1.0) ----------------------------------------------------------------------------
     static mpc::Param notAutomated(mpc::Param p) { p.automatable = false; return p; }
 
@@ -759,15 +935,13 @@ private:
     }
 
     // ---- programs ----------------------------------------------------------------------------------------------
-    // A program holds the parameters up to the last one it changes, and at least the 31 of version 1.0: the host
-    // leaves the rest (the patterns) as they are.
     void program(const char* name, std::vector<std::pair<int, float>> changes)
     {
-        int count = kSource;
-        for (auto& c : changes) if (c.first + 1 > count) count = c.first + 1;
-        std::vector<float> v((size_t)count);
-        for (int i = 0; i < count; ++i) v[(size_t)i] = param(i).def;
-        for (auto& c : changes) v[(size_t)c.first] = c.second;
+        std::vector<float> v((size_t)numParams());
+        bool setsSource = false;
+        for (int i = 0; i < numParams(); ++i) v[(size_t)i] = param(i).def;
+        for (auto& c : changes) { v[(size_t)c.first] = c.second; setsSource |= c.first == kSource; }
+        programSetsSource_.push_back(setsSource);
         addProgram(name, v);
     }
 
@@ -777,7 +951,7 @@ private:
         info.name         = "Acid Rat";
         info.vendor       = "Gonzi Audio";   // must match plugin.json "manufacturer"
         info.uniqueId     = MPC_FOURCC(kUid[0], kUid[1], kUid[2], kUid[3]);   // must match plugin.json "uid"
-        info.version      = 1100;           // 1.1.0.0: the step sequencer (parameters 31..117 appended)
+        info.version      = 1200;           // 1.2.0.0: beyond the 303 (parameters 118..138 appended)
         info.isInstrument = true;
         info.numInputs    = 0;
         info.numOutputs   = 2;
@@ -818,6 +992,16 @@ private:
     int  source_ = 0, curPattern_ = 0, patSteps_ = kPatSteps, pos_ = -1, writeCursor_ = 0, writeHeld_ = -1;
     bool writing_ = false, lastWrite_ = false, lastCopy_ = false, lastClear_ = false;
     bool dirty_[kNumParams] = {}, anyDirty_ = false;
+
+    // beyond the 303
+    float deepSet_[14];                          // what the engine was last given (osc 4, env 4, filter 4, pitch, duty)
+    float cutShift_ = 0, keyTrack_ = 0, filtFM_ = 0, accSweep_ = 1, lfoCut_ = 0, lfoPitch_ = 0, lfoPW_ = 0, dutyBase_ = 0;
+    float lowCutC_ = 0, lowCutX_ = 0, lowCutY_ = 0, lfoPhase_ = 0, lfoStep_ = 0, lfoHold_ = 0;
+    double lfoDivBeats_ = 4.0;
+    int64_t lfoCycle_ = 0;
+    int  lfoShape_ = 0, chunk_ = kChunk, seenProgram_ = 0;
+    std::vector<bool> programSetsSource_;
+    bool lfoSynced_ = true;
 
     std::vector<float> delayL_, delayR_;
     size_t delayPos_ = 0;
