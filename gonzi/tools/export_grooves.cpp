@@ -35,7 +35,7 @@ int main(int argc, char** argv)
         for (int bar = 0; bar < bars; ++bar)
         {
             const bool fill = (bar % 4) == 3;
-            const auto& src = fill ? g.fill : g.bars[(size_t)(bar % (int)g.bars.size())];
+            const auto& src = fill ? g.fills[(size_t)((bar / 4) % (int)g.fills.size())] : g.bars[(size_t)(bar % (int)g.bars.size())];
             bool crash0 = false;
             for (const auto& e : src) if (e.tick == 0 && (e.note == 49 || e.note == 55 || e.note == 57)) crash0 = true;
             const unsigned base = (unsigned)(bar * sabbath::kTicksPerBar);

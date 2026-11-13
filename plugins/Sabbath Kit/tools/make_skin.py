@@ -70,9 +70,9 @@ PAGES = {   # tab -> file, the rows' captions, the emblem
     "TOMS": ("bg_toms.jpg", ("Tune   -   Tom 1 / Tom 2 / Tom 3", "Decay", "Level", "Response"), "star"),
     "CYMBALS": ("bg_cymbals.jpg", ("Tune   -   Hat / Crash / Ride", "Decay", "Level", "Response"), "eye"),
 }
-PADS = (("Crash A20", "Crash 2002", "Crash K17", "Ride Wash"),      # top row of pads first
-        ("Snare Edge", "X-Stick", "Ride", "Ride Bell"),
-        ("Tom 3", "Tom 2", "Tom 1", "Pedal Hat"),
+PADS = (("Crash 2002", "Pedal Hat", "Kick", "Snare"),      # top row of pads first (Pad Map MPC, the MPC's C major pads)
+        ("Snare Edge", "Ride", "Ride Bell", "Crash A20"),
+        ("Tom 3", "Tom 2", "Tom 1", "Kick"),
         ("Kick", "Snare", "Hat", "Open Hat"))
 NUMERAL = ("I", "II", "III", "IV")
 
@@ -240,7 +240,7 @@ def background(tab, seed):
         f_t, f_p, f_n = font(CAPS, 21 * s), font(BOLD, 17 * s), font(SANS, 11 * s)
         top = YS[2] - 21
         lozenge(d, 32 * s, top * s, 4 * s, GOLD + (255,))
-        d.text((44 * s, top * s - s), "The Pads   -   Pad Map C2 or C1  (if the kick is not on pad 1, try the other)", font=f_t,
+        d.text((44 * s, top * s - s), "The Pads   -   Pad Map MPC  (in another bank rows 1-2 and 3-4 may swap; pad 1 is always the kick)", font=f_t,
                fill=GOLD + (255,), anchor="lm")
         cw, ch, gap = 200, 52, 10
         x0 = (W - (4 * cw + 3 * gap)) // 2
@@ -249,7 +249,7 @@ def background(tab, seed):
             for c in range(4):
                 x, y = x0 + c * (cw + gap), y0 + r * (ch + gap)
                 n = (3 - r) * 4 + c + 1
-                hot = n in (1, 2)
+                hot = PADS[r][c] in ("Kick", "Snare")
                 d.rounded_rectangle((x * s, y * s, (x + cw) * s, (y + ch) * s), radius=7 * s,
                                     fill=(52, 26, 6, 235) if hot else (10, 8, 13, 215),
                                     outline=(AMBER if hot else GOLD_DARK) + (255,), width=(2 if hot else 1) * s)
@@ -425,7 +425,8 @@ def build_skin():
     art = {"knob_uni.png": knob_strip(False), "knob_bi.png": knob_strip(True), "fader_h_uni.png": fader_strip(),
            "toggle_on.png": toggle(True), "toggle_off.png": toggle(False),
            "seg3_on.png": seg(80, 40, True), "seg3_off.png": seg(80, 40, False),
-           "seg2_on.png": seg(122, 40, True), "seg2_off.png": seg(122, 40, False)}
+           "seg2_on.png": seg(122, 40, True), "seg2_off.png": seg(122, 40, False),
+           "seg4_on.png": seg(58, 40, True), "seg4_off.png": seg(58, 40, False)}
     kit = sorted(f for f in os.listdir(SKINS) if f.endswith(".png"))
     for f in kit:
         if f not in art:

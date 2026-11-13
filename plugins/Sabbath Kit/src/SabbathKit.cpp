@@ -67,7 +67,7 @@ enum ParamIndex
     kGrooveVel,   // % dynamics of the groove
     // --- v2.1 ---
     kGroovePlay,  // On: the groove plays by itself (no need to press Play on the MPC). Groove Off + Play = a random groove
-    kPadMap,      // which notes play which drum: C2 / C1 = 16-pad layout starting at note 48 / 36, GM = General MIDI
+    kPadMap,      // which notes play which drum: MPC (default) = the MPC's own pad scale, C2 / C1 = 16 chromatic pads from note 48 / 36, GM = General MIDI
     kNumParams
 };
 
@@ -155,6 +155,20 @@ int pieceForNote(int n)
 const int kPadLayout[16] = { pKick, pSnare, pHatClosed, pHatOpen, pTom3, pTom2, pTom1, pHatPedal,
                              pSnareEdge, pXStick, pRide, pRideBell, pCrashA20, pCrash2002, pCrashK17, pRideShank };
 inline int pieceForPad(int note, int base) { return kPadLayout[(((note - base) % 16) + 16) % 16]; }
+
+// Pad Map MPC (default): made for the MPC's own pad setup on a plugin track (Pad Perform: Notes, C major, or
+// Chromatic). Every C is a kick and every D a snare; the other white keys alternate between two sets from one
+// octave to the next, so 16 pads in a row always hold the kick on pad 1, the snare on pad 2 and the whole kit.
+//   octave A:  C kick  D snare       E closed hat  F open hat   G tom 3      A tom 2       B tom 1
+//   octave B:  C kick  D snare edge  E ride        F ride bell  G crash A20  A crash 2002  B pedal hat
+//   black keys: C# cross-stick, D# clap, F# tambourine, G# cowbell, A# crash K17 / ride shank
+inline int pieceForScale(int note)
+{
+    static const int a[12] = { pKick, pXStick, pSnare,     pClap, pHatClosed, pHatOpen,  pTamb, pTom3,     pCowbell, pTom2,      pCrashK17,  pTom1 };
+    static const int b[12] = { pKick, pXStick, pSnareEdge, pClap, pRide,      pRideBell, pTamb, pCrashA20, pCowbell, pCrash2002, pRideShank, pHatPedal };
+    if (note < 0) note = 0;
+    return ((note / 12) & 1) ? b[note % 12] : a[note % 12];
+}
 
 const int kInternal = 1000;   // added to the note of groove events: those are always General MIDI
 
@@ -325,7 +339,7 @@ public:
         i.name = "Sabbath Kit";
         i.vendor = "Gonzi Audio";
         i.uniqueId = MPC_FOURCC('G', 'p', 'n', 'q');   // == "uid" in plugin.json. Never change.
-        i.version = 2100;
+        i.version = 2200;
         i.isInstrument = true;
         i.numInputs = 0;
         i.numOutputs = 2;
@@ -380,7 +394,7 @@ public:
         addParam(floatParam("groove_vel", "Groove Vel", 0.0f, 100.0f, 80.0f, "%", 0));
         // v2.1
         addParam(boolParam("groove_play", "Play", false));
-        addParam(choiceParam("pad_map", "Pad Map", { "C2", "C1", "GM" }, 0));
+        addParam(choiceParam("pad_map", "Pad Map", { "C2", "C1", "GM", "MPC" }, 3));
         if (numParams() != kNumParams) mpc::log("SabbathKit: parameter count mismatch");
         addPresets();
     }
@@ -564,7 +578,8 @@ private:
         {
             const bool fill = (fillEvery_ > 0 && (bar % fillEvery_) == fillEvery_ - 1) || bar == forcedFillBar;
             const bool crashAfterFill = (fillEvery_ > 0 && bar > 0 && (bar % fillEvery_) == 0) || (forcedFillBar >= 0 && bar == forcedFillBar + 1);
-            const std::vector<sabbath::Event>& evs = fill ? g.fill : g.bars[(size_t)(bar % nb)];
+            const int every = fillEvery_ > 0 ? fillEvery_ : 4;
+            const std::vector<sabbath::Event>& evs = fill ? g.fills[(size_t)((bar / every) % (long)g.fills.size())] : g.bars[(size_t)(bar % nb)];
             bool crashAtZero = false;
             for (const auto& e : evs)
                 if (e.tick == 0 && (e.note == 49 || e.note == 55 || e.note == 57)) crashAtZero = true;
@@ -601,7 +616,7 @@ private:
     void trigger(int note, int velocity)
     {
         const int pc = note >= kInternal ? pieceForNote(note - kInternal)
-                     : padMap_ == 0 ? pieceForPad(note, 48) : padMap_ == 1 ? pieceForPad(note, 36) : pieceForNote(note);
+                     : padMap_ == 3 ? pieceForScale(note) : padMap_ == 0 ? pieceForPad(note, 48) : padMap_ == 1 ? pieceForPad(note, 36) : pieceForNote(note);
         const PieceInfo& pi = kPieces[pc];
         const int grp = pi.group;
         const float sens = get(kVelSens) * 0.01f;
@@ -746,7 +761,7 @@ private:
     double padPpq_ = 0.0;
     int padFillBar_ = -1;
     bool play_ = false;
-    int padMap_ = 0, randomGroove_ = 0;
+    int padMap_ = 3, randomGroove_ = 0;
 
     float roomLevel_ = 0.0f, width_ = 1.0f;
     bool compOn_ = false, driveOn_ = false;
