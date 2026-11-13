@@ -1,0 +1,17 @@
+{
+  "name": "Patina",
+  "manufacturer": "Gonzi Audio",
+  "version": "1.0.0",
+  "format": "vst2",
+  "kind": "effect",
+  "uid": "GIi1",
+  "numInputs": 2,
+  "numOutputs": 2,
+  "category": "Effect",
+  "file32": "VST/patina-arm32.so",
+  "file64": "VST/patina-arm64.so",
+  "description": "Lo-fi texture: vinyl crackle, pops and warp, cassette wow, hiss and saturation, sampler grain and a small dark room.",
+  "author": "Gonzi Audio",
+  "url": "",
+  "license": "MIT"
+}
