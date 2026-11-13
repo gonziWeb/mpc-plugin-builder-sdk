@@ -60,6 +60,14 @@ Read `AGENTS.md` first and follow its workflow and hard rules; this file only ad
    .sdk-tools/render_garden "plugins/<Name>/build/native/<slug>.so" out.wav 40 0 2 4
    .sdk-tools/render_garden "plugins/<Name>/build/native/<slug>.so" check
    ```
+   Guitar effects (Monolith): `gonzi/tools/render_guitar.cpp` plays a dry electric-guitar part (a plucked-string model:
+   power chords, palm mutes, a lead; `MPC_DI=<file.wav>` plays a real 16-bit DI take instead) through each section, and
+   prints peak, RMS and desktop CPU. A section is `-1` (dry), a program, or `program:index=value,...` to set parameters
+   by index (normalised) after the program. It re-prepares the plugin for each section, as the MPC does:
+   ```
+   g++ -O2 -std=c++17 -Iframework gonzi/tools/render_guitar.cpp -o .sdk-tools/render_guitar -ldl
+   .sdk-tools/render_guitar "plugins/<Name>/build/native/<slug>.so" out.wav 70 -1 0 2 2:13=0.4444,37=1
+   ```
 6. `python tools/package.py "plugins/<Name>"`; hand over the zip and the WAV.
 
 Our plugin projects live in `plugins/` and are tracked in git in this fork (`build/` and `dist/` stay ignored).
@@ -72,6 +80,7 @@ Our plugin projects live in `plugins/` and are tracked in git in this fork (`bui
 | Grimoire | instrument, dark ambient / dungeon synth (GR!MM + GHOULBOX FM-1 firmwares ported) | Gp4w | 1.2.0 | **GPL-3.0-only** | `plugins/Grimoire/` |
 | Acid Rat | instrument, 303-style acid bass line (X0X's Open303 engine + TB-3PO line generator + 8 x 16-step patterns + osc / filter / envelope / LFO extensions) | G37u | 1.2.0 | **GPL-3.0-only** | `plugins/Acid Rat/` |
 | Slow Garden | instrument, generative ambient that plays itself (AMB-1's engine: breathing pad, bells on loops of 13/17/23/29 beats, gliding bass, Euclidean pulse, tape echo + plate) | GggB | 1.0.0 | **MPL-2.0** | `plugins/Slow Garden/` |
+| Monolith | effect, guitar rig builder: 6 blocks in any order (Neural Amp Modeler amp and pedal captures, cabinet IRs, gate, EQ, 10 drives, 8 delays, 8 reverbs), pedalboard screen | GMdM | 0.4.0 | MIT (NAM Core MIT, Eigen MPL-2.0, json MIT) | `plugins/Monolith/` |
 
 Dusty Tape parameter order (permanent): Output, Sync, Division, Time, Feedback, Tone, Low Cut, Mix, Wow, Flutter,
 Drive, Hiss, Bits, Rate, Ping Pong.
@@ -210,3 +219,35 @@ the root); the pool is the extra state ("SGD1"). Being MPL, the MPC zip carries 
 Screen: the SDK kit, lime theme, pages GARDEN, LAYERS, SPACE (no themed skin yet). Not yet tried on the MPC: CPU on the
 One (0.5 % of a desktop core), the screen, whether Sync / Grow = Song get tempo, position and play state as in the
 simulator, and whether a project load applies the program after the state (an edited scale would then be lost).
+
+Monolith parameter order (permanent, 53): Output, Input, In Chan, Quality; then for each block n = 1..6 (ids `s<n>_*`):
+Type ("Block n"), File, On, Level, K1, K2, K3, K4; then DI Comp. Type choices (append only): Off, Gate, Amp, Cab IR, EQ,
+Drive, Delay, Reverb, Pedal. The effect preset lists (`kDrivePresets`, `kDelayPresets`, `kReverbPresets`) and the
+programs (6) are append only too.
+
+Monolith notes: the engine is Neural Amp Modeler Core (sdatkinson/NeuralAmpModelerCore at d3189ed, MIT), unchanged in
+`src/NAM/` and compiled as one translation unit by `src/nam_engine.cpp` with `NAM_SAMPLE_FLOAT` and `NAM_ENABLE_A2_FAST`;
+it needs `src/Eigen` (bc3b398, MPL-2.0, headers only), `src/unsupported/Eigen/FFT` and `src/json.hpp`. `nam_bridge.h` is
+the only interface `Monolith.cpp` sees. A first build takes about 3 minutes per target (Zig caches it afterwards;
+`nam_engine.cpp` includes `rig_dsp.h`, so editing that header recompiles the engine). Captures (`.nam`) and impulse
+responses (`.wav`) are whatever is under the plugin's `Content/` on the drive, listed when the plugin is created; a
+capture is a pedal (Pedal blocks) when "pedal" is in its path or its metadata says `gear_type: pedal`, otherwise an amp.
+Files are loaded by a worker thread or by `prepare()` and handed to the audio thread through a three-state atomic per
+block. A capture trained at 48 kHz runs between two polyphase resamplers (Quality Hi-Fi, about 0.7 ms) or at 44.1 kHz as
+is (Eco). The File and K parameters change name with the block type (the plugin asks the MPC to re-read them: this works
+on the MPC One); until the first `prepare()` they are `1 File`, `1 K1`, ... and show plain numbers, which is what the
+build's parameter dump and `ui.json` rely on. Two things found with the arm32 build under qemu, both handled in
+`Monolith.cpp` and worth knowing for other plugins: `std::filesystem` directory iteration fails with EOVERFLOW (plain
+`opendir` with `_FILE_OFFSET_BITS 64` is used), and a Zig-built library with static destructors crashes the host at
+exit if it was unloaded (nothing runs `__cxa_finalize`; Monolith re-opens itself with `RTLD_NODELETE`; check a plugin
+with `readelf -W --dyn-syms <lib> | grep cxa_atexit`).
+
+Monolith's screen: a skin in `skins/`, generated by `python3 plugins/Monolith/tools/make_skin.py [--preview out.png]`
+(Pillow). RIG shows the six blocks as gear on one line (film strips bound to each block's Type) and, under it, the
+settings of the block that was touched (a radio group of buttons on the UI-only handle `Local/7/sel`; the controls of
+all six blocks are stacked, each shown for its block only; `ui.json` has helper pages E1..E6 that the script folds into
+RIG and removes). BLK 1-2 / 3-4 / 5-6 give the same settings to the Q-Links. After changing `ui.json` or parameters:
+delete `skins/`, build, make_skin, build. On the MPC One so far: the plugin loads, the gear pictures follow the types,
+a guitar plugged straight in plays. Not yet confirmed there: touching a block to select it, the hidden knobs, CPU
+(estimated 12-15 % of a core per A2 Lite capture, two captures at most; A1 "standard" captures are too heavy), and
+whether the output limiter cured a crackle on hard pick attacks.

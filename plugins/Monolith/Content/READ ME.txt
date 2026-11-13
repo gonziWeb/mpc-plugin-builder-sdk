@@ -1,0 +1,5 @@
+Monolith - your files
+
+Copy Neural Amp Modeler captures (.nam) into the NAM folder and cabinet impulse responses (.wav) into the IR folder.
+Sub-folders are fine. Reload the project on the MPC after adding files.
+Use A2 captures (or nano / feather sizes): standard captures are too heavy for the MPC.
