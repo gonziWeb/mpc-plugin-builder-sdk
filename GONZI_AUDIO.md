@@ -68,6 +68,14 @@ Read `AGENTS.md` first and follow its workflow and hard rules; this file only ad
    g++ -O2 -std=c++17 -Iframework gonzi/tools/render_guitar.cpp -o .sdk-tools/render_guitar -ldl
    .sdk-tools/render_guitar "plugins/<Name>/build/native/<slug>.so" out.wav 70 -1 0 2 2:13=0.4444,37=1
    ```
+   Instruments with their own sequencer (Drum Rat): `gonzi/tools/render_seq.cpp` runs the transport for some bars per
+   section; a section is `<program>[/<paramIndex>=<normalised>]...`. `hits` instead of the bars plays the fourteen white keys
+   from note 48 one by one, soft then accented. Prints peak, RMS and desktop CPU (`MPC_RATE`, `MPC_BLOCK`):
+   ```
+   g++ -O2 -std=c++17 -Iframework gonzi/tools/render_seq.cpp -o .sdk-tools/render_seq -ldl
+   .sdk-tools/render_seq "plugins/Drum Rat/build/native/drum-rat.so" out.wav 122 2 0/58=0.5 1/58=0.5/59=0.285714
+   .sdk-tools/render_seq "plugins/Drum Rat/build/native/drum-rat.so" hits.wav 120 hits 0 1
+   ```
 6. `python tools/package.py "plugins/<Name>"`; hand over the zip and the WAV.
 
 Our plugin projects live in `plugins/` and are tracked in git in this fork (`build/` and `dist/` stay ignored).
@@ -82,6 +90,7 @@ Our plugin projects live in `plugins/` and are tracked in git in this fork (`bui
 | Slow Garden | instrument, generative ambient that plays itself (AMB-1's engine: breathing pad, bells on loops of 13/17/23/29 beats, gliding bass, Euclidean pulse, tape echo + plate) | GggB | 1.0.0 | **MPL-2.0** | `plugins/Slow Garden/` |
 | Monolith | effect, guitar rig builder: 6 blocks in any order (Neural Amp Modeler amp and pedal captures, cabinet IRs, gate, EQ, 10 drives, 8 delays, 8 reverbs), pedalboard screen | GMdM | 0.4.0 | MIT (NAM Core MIT, Eigen MPL-2.0, json MIT) | `plugins/Monolith/` |
 | Patina | effect, lo-fi texture (vinyl crackle / pops / dust / rumble / warp, cassette wow / flutter / drive / hiss / dropouts, sampler bits + rate, small dark room, Age macro) | GIi1 | 1.0.0 | MIT | `plugins/Patina/` |
+| Drum Rat | instrument, 808 + 909 drum machine (X0X's drum808 / drum909 engines: 8W8 and 9W9), 11 tracks each on either machine, 16-step sequencer with accent, 8 patterns | GVUx | 1.0.0 | **GPL-3.0-only** | `plugins/Drum Rat/` |
 
 Dusty Tape parameter order (permanent): Output, Sync, Division, Time, Feedback, Tone, Low Cut, Mix, Wow, Flutter,
 Drive, Hiss, Bits, Rate, Ping Pong.
@@ -272,3 +281,40 @@ Noise = Follow gates the noises on the input envelope (500 ms release). Sections
 `render_demo ... 90 -1 0 1 2 3 4 5 6 7 8 9`. Simulator: PASS at blocks 32 / 128 / 512, about 0.5 % of a desktop core.
 Not yet tried on the MPC: CPU on the One, the screen (SDK kit, amber, pages MAIN / VINYL / TAPE / GRAIN), and whether
 the crackle level suits real drum tracks (tuned on the synthetic demo loop only).
+
+Drum Rat parameter order (permanent, 83): Master, Kit, Accent, Drive, Drive Type, Width, Congas, Claves, Maracas, then
+per track BD SD LT MT HT RS CP CH OH CY PC: Level, Tune, Decay (9-41), BD Tone, BD Attack, SD Tone, SD Snappy (42-45),
+BD..PC Mach (46-56); these 57 are the sound, which is all a program sets. Then the player's: Pad Map, Seq, Pattern,
+Steps, Rate, Swing, Track, Pad Sel, Clear Trk, Clear Pat (57-66), S1..S16 (67-82). Choices (append only): Kit 808 / 909 /
+Mix; Drive Type Diode, Clip, SAT, BFZ, PDIST, Fold, Crush; Pad Map MPC / GM; Seq Off / Song / Run; Rate 1/8, 1/16, 1/32;
+steps Off / On / Acc. Programs (8): append only.
+
+Drum Rat notes: the user asked for an 808 and a 909 "at the same time" and chose one plugin with two kits, a ported free
+engine, and a 16-step sequencer with accent; the name Drum Rat was picked by the agent (the user had chosen "Boom Rat /
+Club Rat" for two plugins) and is still to be confirmed. Engines: X0X's `drum808` (8W8) and `drum909` (9W9 / ER-99) from
+charlesvestal/fm1-x0x at 512c0da, in `src/x0x/`, included from `DrumRat.cpp` inside `namespace x0x` like Acid Rat's.
+`x0x_drum_samples.h` (the 909's hats, ride, crash as mu-law) and `x0x_drum_tables.h` are written by X0X's
+`tools/gen_drum_samples.py` (copied to `tools/`, recordings in `tools/909/`). Our only engine change: the three
+file-level "render in progress" variables are `X0X_TLS` (= `thread_local`), because two instances on two cores would
+otherwise share them; `gonzi/tools/test_drum_engines.cpp` compares with X0X's sources compiled as C (same samples; run
+after any engine edit). `#define _Static_assert static_assert` and `#pragma clang fp contract(off)` are needed around
+the includes. The engines are fixed at 44.1 kHz: at another host rate `renderHost` reads them through a linear
+interpolator. Both engines take integer pots 0..127 and list each track's knobs by name: `findSlots()` looks the names
+up (Level, Tune, Decay / Tail, Drive, Dist, Pan, Tone, Attack, Snappy, Pitch, Sound) and reads the factory positions,
+`pushPots()` sends what changed once per block. Tune / Decay / the four extras are offsets around the factory pot; Level
+80 % = factory. On the 808 a track's knobs edit the sound its switch selects, so the switch is set first and the
+track's pots are sent again. Trims by measurement: 808 x 0.80, 909 x 0.18, 808 cowbell at half level. An "On" step is
+velocity 0.502 on the 808 and 88/127 on the 909 (X0X's own), an accent 1.0. Pad Map MPC follows Sabbath Kit 2.2's
+finding (the One's pads send C major): every C = kick, the other white keys alternate between two sets by octave
+parity (`trackForScale`). Sequencer: `slots_[8][11][16]` atomics
+(0 / 1 / 2) and lengths, extra state "DRP1", staging copy swapped in by `reset()` as in Acid Rat; the 16 step
+parameters show one track (`Track`), copied to the slot every block, rewritten when Track or Pattern changes
+(`showRow`); programs stop at parameter 56 so they never touch the player (Slow Garden's way, no restoring needed).
+There is deliberately no running-light parameter: one that moves by itself fails the simulator's state round trip
+when Seq = Run (append one when a themed skin with lamps is made, and exempt it then). Screen: SDK kit, amber, pages
+KIT, DRUMS 1-3, SEQ, STEPS (16 three-way switches); a themed skin with a row of sixteen keys (Acid Rat's `make_skin.py`
+recipe) is the obvious next step. Being GPL, the MPC zip carries `drum-rat-<ver>-source.zip`, `LICENSE` and
+`LICENSING.md` (added by hand after `package.py`), and `Content/` holds the licence on the device.
+`gonzi/tools/test_drum_rat.cpp` runs 26 checks (run after any change). Not yet tried on the MPC, and the ARM builds
+were not run under qemu (not installable in that session): CPU on the One, the screen following plugin-moved
+parameters, the pads' notes, thread-local storage in the arm32 build.

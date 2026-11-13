@@ -1,0 +1,17 @@
+{
+  "name": "Drum Rat",
+  "manufacturer": "Gonzi Audio",
+  "version": "1.0.0",
+  "format": "vst2",
+  "kind": "instrument",
+  "uid": "GVUx",
+  "numInputs": 0,
+  "numOutputs": 2,
+  "category": "Drums",
+  "file32": "VST/drum-rat-arm32.so",
+  "file64": "VST/drum-rat-arm64.so",
+  "description": "An 808 and a 909 in one drum machine: X0X's circuit-modelled TR-808 and TR-909 engines (8W8 / 9W9), 11 tracks that can each use either machine, and a 16-step sequencer with accent and 8 patterns that follows the MPC tempo.",
+  "author": "Gonzi Audio",
+  "url": "https://github.com/gonziWeb/mpc-plugin-builder-sdk",
+  "license": "GPL-3.0-only"
+}
