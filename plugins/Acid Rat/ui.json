@@ -13,7 +13,7 @@
         { "param": "Seq", "widget": "switch" }, { "param": "Seed", "widget": "knob" }, { "param": "Length", "widget": "knob" }, { "param": "Rate", "widget": "slider", "overlay": "menu" },
         { "param": "Density", "widget": "knob" }, { "param": "Seq Accent", "widget": "knob" }, { "param": "Seq Slide", "widget": "knob" }, { "param": "Mutate", "widget": "slider", "overlay": "menu" },
         { "param": "Root", "widget": "slider", "overlay": "menu" }, { "param": "Scale", "widget": "slider", "overlay": "menu" }, { "param": "Base Oct", "widget": "knob" }, { "param": "Oct Range", "widget": "knob" },
-        { "param": "Gate", "widget": "knob" }, { "param": "Swing", "widget": "knob" }, { "param": "Acc Vel", "widget": "knob" }, { "param": "Master", "widget": "fader" }
+        { "param": "Gate", "widget": "knob" }, { "param": "Swing", "widget": "knob" }, { "param": "Acc Vel", "widget": "knob" }, { "param": "Source", "widget": "switch" }
       ] }
   ]
 }

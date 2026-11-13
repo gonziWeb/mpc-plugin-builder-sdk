@@ -19,15 +19,22 @@
 //   * a note with velocity >= "Acc Vel" (100) is ACCENTED (louder, the filter opens further and "wows");
 //   * a note that starts while the previous one is still held SLIDES to it without retriggering the envelopes
 //     (in a sequence: make the first note long enough to overlap the next).
-// Seq = Keys: the generated line plays while a note is held, transposed by that note (C3 / note 60 = as written).
+// Seq = Keys: the line plays while a note is held, transposed by that note (C3 / note 60 = as written).
 // Seq = Song: the line plays whenever the MPC plays; the last note received transposes it.
+// The line is either the generator's (Source = Dice) or a 16-step pattern written by hand (Source = Pattern):
+// per step a note (C..C), an octave (Down / Mid / Up), gate, accent and slide, as on the original's panel.
+// The pattern on the screen is 80 parameters (so the touch grid and the Q-Links edit it); eight patterns are kept
+// in the saved state and "Pattern" chooses which one the parameters show. With Write on, each note played is
+// stored in the next step. Notes 12..19 choose pattern 1..8.
 //
 // Realtime: nothing in process() allocates, locks or does I/O. The engine renders in pieces of at most 32 frames,
 // cut at MIDI events and at the sequencer's steps, so timing is sample-accurate.
 
 #include "mpc_plugin.h"
 
+#include <atomic>
 #include <cmath>
+#include <cstdio>
 #include <cstdint>
 #include <cstring>
 #include <stdint.h>
@@ -91,8 +98,41 @@ enum ParamIndex
     kDelayMix,     // %
     kDelayTime,    // tempo division
     kDelayFdbk,    // %
-    kNumParams
+    // ---- 1.1.0: the step sequencer (appended) ----
+    kSource,       // which line the sequencer plays: Dice (the generator) / Pattern (the 16 steps below)
+    kPattern,      // 1..8: which stored pattern the step parameters show and play
+    kSteps,        // 1..16: the pattern's length (stored with the pattern)
+    kWrite,        // on: notes played are stored step by step, then it turns itself off
+    kCopyDice,     // momentary: copy the generator's line into the pattern
+    kClear,        // momentary: empty the pattern
+    kPos,          // read-only: the step being played (0 = stopped), for the running light
+    kStepNote,                              // 16 x C, C#, .. B, C'
+    kStepOct   = kStepNote + 16,            // 16 x Down / Mid / Up
+    kStepGate  = kStepOct + 16,             // 16 x note or rest
+    kStepAcc   = kStepGate + 16,            // 16 x accent
+    kStepSlide = kStepAcc + 16,             // 16 x slide into the next step
+    kNumParams = kStepSlide + 16            // 118
 };
+
+constexpr int kNumPatterns = 8, kPatSteps = 16;
+
+// A step packed into an integer: note 0..12 | octave 0..2 << 4 | gate << 6 | accent << 7 | slide << 8.
+// Octave Down starts at MIDI note 24 (C1), Mid at 36, Up at 48; the thirteenth key is the C above.
+inline uint32_t packStep(int note, int oct, bool gate, bool acc, bool slide)
+{
+    return (uint32_t)(note & 15) | ((uint32_t)(oct & 3) << 4) | (gate ? 64u : 0u) | (acc ? 128u : 0u) | (slide ? 256u : 0u);
+}
+inline uint32_t packMidi(int midi, bool gate, bool acc, bool slide)     // any MIDI note, folded into 24..60
+{
+    while (midi < 24) midi += 12;
+    while (midi > 60) midi -= 12;
+    if (midi == 60) return packStep(12, 2, gate, acc, slide);
+    return packStep((midi - 24) % 12, (midi - 24) / 12, gate, acc, slide);
+}
+inline int  stepMidi(uint32_t v)  { return 24 + 12 * (int)((v >> 4) & 3) + (int)(v & 15); }
+inline bool stepGate(uint32_t v)  { return (v & 64u) != 0; }
+inline bool stepAcc(uint32_t v)   { return (v & 128u) != 0; }
+inline bool stepSlide(uint32_t v) { return (v & 256u) != 0; }
 
 enum { kSeqOff = 0, kSeqKeys, kSeqSong };
 
@@ -145,7 +185,35 @@ public:
         addParam(mpc::choiceParam("delaytime", "Delay Time", {"1/16", "1/8T", "1/8", "1/8D", "1/4"}, 3));
         addParam(mpc::floatParam ("delayfdbk", "Delay Fdbk", 0.0f, 90.0f, 45.0f, "%", 0));
 
-        // Built-in programs: the defaults with a few values changed each.
+        // ---- 1.1.0: the step sequencer. Pattern 1 is a classic line in A; 2..8 start as generated lines.
+        makeFactoryPatterns();
+        addParam(mpc::choiceParam("source",   "Source",   {"Dice", "Pattern"}, 0));
+        addParam(mpc::choiceParam("pattern",  "Pattern",  {"1", "2", "3", "4", "5", "6", "7", "8"}, 0));
+        addParam(mpc::choiceParam("steps",    "Steps",    {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"}, 15));
+        addParam(notAutomated(mpc::boolParam("write",    "Write",    false)));
+        addParam(notAutomated(mpc::boolParam("copydice", "Dice>Pat", false)));
+        addParam(notAutomated(mpc::boolParam("clear",    "Clear",    false)));
+        addParam(notAutomated(mpc::choiceParam("pos",    "Pos",      {"-", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"}, 0)));
+        static const char* const kinds[5][2] = {{"note", "Note"}, {"oct", "Oct"}, {"gate", "Gate"}, {"acc", "Acc"}, {"slide", "Slide"}};
+        for (int kind = 0; kind < 5; ++kind)
+            for (int st = 0; st < kPatSteps; ++st)
+            {
+                char id[24], name[24];
+                std::snprintf(id, sizeof id, "s%02d_%s", st + 1, kinds[kind][0]);
+                std::snprintf(name, sizeof name, "S%d %s", st + 1, kinds[kind][1]);
+                const uint32_t v = factory_[0][st];
+                if (kind == 0)      addParam(mpc::choiceParam(id, name, {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B", "C'"}, (int)(v & 15)));
+                else if (kind == 1) addParam(mpc::choiceParam(id, name, {"Down", "Mid", "Up"}, (int)((v >> 4) & 3)));
+                else                addParam(mpc::boolParam(id, name, kind == 2 ? stepGate(v) : kind == 3 ? stepAcc(v) : stepSlide(v)));
+            }
+        for (int pt = 0; pt < kNumPatterns; ++pt)
+        {
+            for (int st = 0; st < kPatSteps; ++st) slots_[pt][st].store(factory_[pt][st], std::memory_order_relaxed);
+            slotLen_[pt].store(kPatSteps, std::memory_order_relaxed);
+        }
+
+        // Built-in programs: the defaults with a few values changed each. They set the sound and the generator and
+        // leave the patterns alone (a program is only as long as the parameters it names).
         program("Acid Rat",      {});
         program("Squelch",       {{kCutoff, 520}, {kReso, 88}, {kEnvMod, 78}, {kDecay, 330}, {kAccent, 80}});
         program("Hollow Square", {{kWave, 1}, {kCutoff, 430}, {kReso, 72}, {kEnvMod, 62}, {kDecay, 520}, {kAccent, 70}});
@@ -161,6 +229,8 @@ public:
         program("Line: Rave",    {{kSeqMode, kSeqSong}, {kCutoff, 640}, {kReso, 86}, {kEnvMod, 76}, {kDecay, 300}, {kAccent, 85},
                                   {kDrive, 40}, {kDriveType, 2}, {kSeed, 23}, {kScale, 1}, {kDensity, 82}, {kSeqSlide, 30},
                                   {kMutate, 3}, {kMaster, -8}});
+        program("Pattern: Keys", {{kSeqMode, kSeqKeys}, {kSource, 1}, {kCutoff, 540}, {kReso, 84}, {kEnvMod, 74}, {kDecay, 340},
+                                  {kAccent, 80}});
     }
 
     void prepare(double sampleRate, int maxBlockSize) override
@@ -187,6 +257,59 @@ public:
         numHeld_ = 0; latchNote_ = 60;
         seqRunning_ = false; seqSounding_ = false; seqPrevSlide_ = false; offCountdown_ = -1;
         beat_ = 0.0; wasPlaying_ = false; lastMode_ = -1; patternKey_ = 0; lastMutBar_ = INT64_MIN;
+
+        // The patterns: after a state load the saved ones are waiting in the staging copy (see loadExtraState).
+        curPattern_ = mpc::clamp(getInt(kPattern), 0, kNumPatterns - 1);
+        if (stagedReady_.exchange(false, std::memory_order_acq_rel))
+        {
+            for (int pt = 0; pt < kNumPatterns; ++pt)
+            {
+                for (int st = 0; st < kPatSteps; ++st) slots_[pt][st].store(staged_[pt][st], std::memory_order_relaxed);
+                slotLen_[pt].store(stagedLen_[pt], std::memory_order_relaxed);
+            }
+            showPattern(curPattern_);
+        }
+        lastCopy_ = getBool(kCopyDice); lastClear_ = getBool(kClear);
+        // Write and the running light as they were saved: the light is only moved when the step changes, so a
+        // state that is loaded comes back exactly (a light saved mid-pattern stays until the next start or stop).
+        writing_ = lastWrite_ = getBool(kWrite); writeCursor_ = 0; writeHeld_ = -1;
+        pos_ = writing_ ? 1 : 0;
+    }
+
+    // The eight patterns travel in the saved state next to the parameters: "ARP1", then per pattern its length
+    // and 16 steps of two bytes. Both run on the UI thread; the audio thread only sees them through atomics and
+    // the staging copy that reset() swaps in.
+    void saveExtraState(std::vector<uint8_t>& out) override
+    {
+        out.insert(out.end(), {'A', 'R', 'P', '1'});
+        const bool pending = stagedReady_.load(std::memory_order_acquire);   // loaded but not yet taken by reset()
+        for (int pt = 0; pt < kNumPatterns; ++pt)
+        {
+            out.push_back((uint8_t)(pending ? stagedLen_[pt] : slotLen_[pt].load(std::memory_order_relaxed)));
+            for (int st = 0; st < kPatSteps; ++st)
+            {
+                const uint32_t v = pending ? staged_[pt][st] : slots_[pt][st].load(std::memory_order_relaxed);
+                out.push_back((uint8_t)(v & 255)); out.push_back((uint8_t)(v >> 8));
+            }
+        }
+    }
+
+    void loadExtraState(const uint8_t* data, size_t size) override
+    {
+        const size_t need = 4 + (size_t)kNumPatterns * (1 + 2 * kPatSteps);
+        if (size < need || std::memcmp(data, "ARP1", 4) != 0) return;
+        const uint8_t* q = data + 4;
+        for (int pt = 0; pt < kNumPatterns; ++pt)
+        {
+            stagedLen_[pt] = mpc::clamp((int)*q++, 1, kPatSteps);
+            for (int st = 0; st < kPatSteps; ++st, q += 2)
+            {
+                const uint32_t v = (uint32_t)q[0] | ((uint32_t)q[1] << 8);
+                staged_[pt][st] = packStep(mpc::clamp((int)(v & 15), 0, 12), mpc::clamp((int)((v >> 4) & 3), 0, 2),
+                                           stepGate(v), stepAcc(v), stepSlide(v));
+            }
+        }
+        stagedReady_.store(true, std::memory_order_release);
     }
 
     void process(mpc::ProcessContext& ctx) override
@@ -203,10 +326,11 @@ public:
         stepBeats_ = (double)kStepBeats[rate];
         swingBeats_ = kStepTriplet[rate] ? 0.0 : (double)(get(kSwing) * 0.005f) * stepBeats_;   // up to half a step late
         gateFrac_ = get(kGate) * 0.01f;
-        seqLen_ = mpc::clamp(getInt(kLength), 1, NSTEPS);
         accVel_ = getInt(kAccVel);
         octaveShift_ = 12 * getInt(kOctave);
         updatePattern();
+        updateStepSequencer();
+        seqLen_ = source_ == 1 ? patSteps_ : mpc::clamp(getInt(kLength), 1, NSTEPS);
 
         // ---- the clock: the MPC's song position while it plays, our own count otherwise --------------------------
         const mpc::Transport& tr = ctx.transport;
@@ -226,11 +350,13 @@ public:
         }
         wasPlaying_ = playing;
 
-        if (mode != lastMode_)            // changing mode: nothing left hanging
+        const int modeNow = writing_ ? (int)kSeqOff + 100 : mode;     // Write behaves as its own mode
+        if (modeNow != lastMode_)         // changing mode: nothing left hanging
         {
             if (lastMode_ >= 0) { x0x::bass303_note_off(&eng_); numHeld_ = 0; }
             seqRunning_ = false; seqSounding_ = false; offCountdown_ = -1;
-            lastMode_ = mode;
+            lastMode_ = modeNow;
+            if (!writing_) setPos(0);
         }
         if (resync && seqRunning_) alignToGrid(0.1);
 
@@ -248,8 +374,8 @@ public:
         float mono[kChunk];
         while (pos < numFrames)
         {
-            while (mi < ctx.numMidiEvents && ctx.midi[mi].sampleOffset <= pos) handleMidi(ctx.midi[mi++], mode);
-            int until = runSequencer(mode, playing);      // frames until the sequencer needs us again
+            while (mi < ctx.numMidiEvents && ctx.midi[mi].sampleOffset <= pos) handleMidi(ctx.midi[mi++], writing_ ? (int)kSeqOff : mode);
+            int until = runSequencer(writing_ ? (int)kSeqOff : mode, playing);      // frames until the sequencer needs us again
             int n = numFrames - pos;
             if (n > kChunk) n = kChunk;
             if (until < n) n = until;
@@ -284,7 +410,16 @@ public:
             beat_ += beatsPerSample_ * (double)n;
             if (offCountdown_ > 0) offCountdown_ -= n;
         }
-        while (mi < ctx.numMidiEvents) handleMidi(ctx.midi[mi++], mode);
+        while (mi < ctx.numMidiEvents) handleMidi(ctx.midi[mi++], writing_ ? (int)kSeqOff : mode);
+
+        // Tell the MPC which parameters the plugin moved itself (a pattern shown, the running light, Write going
+        // off), so the screen follows. Nothing else in the plugin depends on this being honoured.
+        if (anyDirty_)
+        {
+            anyDirty_ = false;
+            for (int i = 0; i < kNumParams; ++i)
+                if (dirty_[i]) { dirty_[i] = false; notifyHostParameterChanged(i); }
+        }
     }
 
 private:
@@ -347,6 +482,28 @@ private:
 
     void handleMidi(const mpc::MidiEvent& e, int mode)
     {
+        if (e.isNoteOn() && !writing_ && e.note() >= 12 && e.note() < 12 + kNumPatterns)
+        {
+            setParam(kPattern, (float)(e.note() - 12));       // notes 12..19 choose the pattern (from the next block)
+            return;
+        }
+        if (e.isNoteOn() && writing_)                         // Write: the note goes into the next step, and sounds
+        {
+            const bool accent = e.velocity() >= accVel_;
+            const uint32_t v = packMidi(e.note(), true, accent, false);
+            showStep(writeCursor_, v);
+            x0x::bass303_note_on(&eng_, mpc::clamp(stepMidi(v) + octaveShift_, 0, 127), accent ? 1 : 0, 0);
+            writeHeld_ = e.note();
+            if (++writeCursor_ >= patSteps_) { writing_ = false; lastWrite_ = false; setParam(kWrite, 0.0f); setPos(0); }
+            else setPos(writeCursor_ + 1);
+            return;
+        }
+        if (e.isNoteOff() && e.note() == writeHeld_)
+        {
+            writeHeld_ = -1;
+            if (numHeld_ == 0) x0x::bass303_note_off(&eng_);
+            return;
+        }
         if (e.isNoteOn())
         {
             const int note = e.note();
@@ -451,9 +608,9 @@ private:
                 else alignToGrid(mode == kSeqKeys ? 0.35 : 0.1);
                 lastMutBar_ = INT64_MIN;
             }
-            else seqRelease();
+            else { seqRelease(); setPos(0); }
         }
-        if (!run) return kChunk;
+        if (!run) { if (!writing_) setPos(0); return kChunk; }
 
         if (offCountdown_ == 0 || (offCountdown_ < 0 && offCountdown_ != -1)) { seqRelease(); }
 
@@ -475,19 +632,30 @@ private:
         const int64_t bar = (int64_t)std::floor(((double)k * stepBeats_ + 1e-6) / 4.0);
         if (bar != lastMutBar_)
         {
-            if (lastMutBar_ != INT64_MIN && mutateBars_ > 0 && bar % mutateBars_ == 0) x0x::tb3po_mutate(&part_, &mutateRng_);
+            if (lastMutBar_ != INT64_MIN && mutateBars_ > 0 && source_ == 0 && bar % mutateBars_ == 0) x0x::tb3po_mutate(&part_, &mutateRng_);
             lastMutBar_ = bar;
         }
 
-        const x0x::bstep_t& st = part_.step[p];
-        if (x0x::bstep_gate(&st) == x0x::G_REST) { seqRelease(); return; }
+        int stepNote; bool accent, slideNext;
+        if (source_ == 1)                                         // the hand-written pattern: the step parameters
+        {
+            const uint32_t v = readStep(p);
+            setPos(p + 1);
+            if (!stepGate(v)) { seqRelease(); return; }
+            stepNote = stepMidi(v); accent = stepAcc(v); slideNext = stepSlide(v);
+        }
+        else                                                      // the generator's line
+        {
+            const x0x::bstep_t& st = part_.step[p];
+            if (x0x::bstep_gate(&st) == x0x::G_REST) { seqRelease(); return; }
+            stepNote = (int)st.note; accent = (st.flags & BS_ACCENT) != 0; slideNext = (st.flags & BS_SLIDE) != 0;
+        }
 
         const int base = (getInt(kSeqMode) == kSeqKeys && numHeld_ > 0) ? held_[numHeld_ - 1].note : latchNote_;
-        const int note = (int)st.note + (base - 60);
         const bool slide = seqSounding_ && seqPrevSlide_;         // the step before slides into this one
-        engineOn(note, (st.flags & BS_ACCENT) != 0, slide);
+        engineOn(stepNote + (base - 60), accent, slide);
         seqSounding_ = true;
-        seqPrevSlide_ = (st.flags & BS_SLIDE) != 0;
+        seqPrevSlide_ = slideNext;
         if (seqPrevSlide_) offCountdown_ = -1;                    // held until the next step
         else
         {
@@ -496,11 +664,109 @@ private:
         }
     }
 
+    // ---- the step sequencer (1.1.0) ----------------------------------------------------------------------------
+    static mpc::Param notAutomated(mpc::Param p) { p.automatable = false; return p; }
+
+    // A parameter the plugin moves itself: store it, and remember to tell the host at the end of the block.
+    void setParam(int i, float plain)
+    {
+        if (std::fabs(get(i) - plain) < 1e-4f) return;
+        set(i, plain);
+        dirty_[i] = true; anyDirty_ = true;
+    }
+
+    void setPos(int v) { if (v != pos_) { pos_ = v; setParam(kPos, (float)v); } }
+
+    uint32_t readStep(int st) const
+    {
+        return packStep(mpc::clamp(getInt(kStepNote + st), 0, 12), mpc::clamp(getInt(kStepOct + st), 0, 2),
+                        getBool(kStepGate + st), getBool(kStepAcc + st), getBool(kStepSlide + st));
+    }
+
+    void showStep(int st, uint32_t v)
+    {
+        setParam(kStepNote + st, (float)(v & 15));
+        setParam(kStepOct + st, (float)((v >> 4) & 3));
+        setParam(kStepGate + st, stepGate(v) ? 1.0f : 0.0f);
+        setParam(kStepAcc + st, stepAcc(v) ? 1.0f : 0.0f);
+        setParam(kStepSlide + st, stepSlide(v) ? 1.0f : 0.0f);
+    }
+
+    void showPattern(int pt)                    // a stored pattern into the step parameters
+    {
+        for (int st = 0; st < kPatSteps; ++st) showStep(st, slots_[pt][st].load(std::memory_order_relaxed));
+        setParam(kSteps, (float)(mpc::clamp(slotLen_[pt].load(std::memory_order_relaxed), 1, kPatSteps) - 1));
+    }
+
+    // Once per block: the pattern chosen, the step parameters kept in their slot, the three buttons.
+    void updateStepSequencer()
+    {
+        source_ = getInt(kSource);
+        const int want = mpc::clamp(getInt(kPattern), 0, kNumPatterns - 1);
+        if (want != curPattern_) { curPattern_ = want; showPattern(want); }
+        patSteps_ = mpc::clamp(getInt(kSteps) + 1, 1, kPatSteps);
+
+        const bool copy = getBool(kCopyDice), clear = getBool(kClear), write = getBool(kWrite);
+        if (copy && !lastCopy_)                 // the generator's line, as far as 16 steps hold it
+        {
+            const int len = mpc::clamp((int)part_.len, 1, kPatSteps);
+            for (int st = 0; st < kPatSteps; ++st)
+            {
+                const x0x::bstep_t& b = part_.step[st % len];
+                showStep(st, packMidi(b.note, x0x::bstep_gate(&b) != x0x::G_REST, (b.flags & BS_ACCENT) != 0, (b.flags & BS_SLIDE) != 0));
+            }
+            setParam(kSteps, (float)(len - 1));
+            patSteps_ = len;
+        }
+        if (clear && !lastClear_)
+            for (int st = 0; st < kPatSteps; ++st) showStep(st, packStep(0, 1, false, false, false));
+        lastCopy_ = copy; lastClear_ = clear;
+
+        if (write != lastWrite_)                // Write on: start at step 1, the sequencer waits
+        {
+            lastWrite_ = write; writing_ = write; writeCursor_ = 0; writeHeld_ = -1;
+            setPos(write ? 1 : 0);
+        }
+
+        for (int st = 0; st < kPatSteps; ++st) slots_[curPattern_][st].store(readStep(st), std::memory_order_relaxed);
+        slotLen_[curPattern_].store(patSteps_, std::memory_order_relaxed);
+    }
+
+    void makeFactoryPatterns()
+    {
+        // pattern 1: note (0 = rest), accent, slide into the next step
+        static const int line[kPatSteps][3] = {
+            {33, 1, 0}, {33, 0, 0}, {45, 0, 1}, {33, 0, 0}, {0, 0, 0}, {36, 1, 0}, {33, 0, 1}, {43, 0, 0},
+            {33, 0, 0}, {0, 0, 0}, {45, 1, 1}, {40, 0, 0}, {33, 0, 0}, {31, 0, 1}, {33, 1, 0}, {38, 0, 0}};
+        for (int st = 0; st < kPatSteps; ++st)
+            factory_[0][st] = line[st][0] ? packMidi(line[st][0], true, line[st][1] != 0, line[st][2] != 0)
+                                          : packStep(0, 1, false, false, false);
+        // patterns 2..8: generated lines in A minor, one seed each, to have something to edit
+        for (int pt = 1; pt < kNumPatterns; ++pt)
+        {
+            x0x::bpart_t part = {};
+            part.gen.density = 70; part.gen.accent = 40; part.gen.slide = 25; part.gen.oct_range = 2;
+            part.gen.root = 9; part.gen.scale = 0; part.gen.base_oct = 1; part.gen.mutate_bars = 0;
+            part.gen.seed = x0x::tb3po_new_seed((uint32_t)(100 + pt));
+            part.len = kPatSteps;
+            x0x::tb3po_generate(&part);
+            for (int st = 0; st < kPatSteps; ++st)
+            {
+                const x0x::bstep_t& b = part.step[st];
+                factory_[pt][st] = packMidi(b.note, x0x::bstep_gate(&b) != x0x::G_REST, (b.flags & BS_ACCENT) != 0, (b.flags & BS_SLIDE) != 0);
+            }
+        }
+    }
+
     // ---- programs ----------------------------------------------------------------------------------------------
+    // A program holds the parameters up to the last one it changes, and at least the 31 of version 1.0: the host
+    // leaves the rest (the patterns) as they are.
     void program(const char* name, std::vector<std::pair<int, float>> changes)
     {
-        std::vector<float> v((size_t)numParams());
-        for (int i = 0; i < numParams(); ++i) v[(size_t)i] = param(i).def;
+        int count = kSource;
+        for (auto& c : changes) if (c.first + 1 > count) count = c.first + 1;
+        std::vector<float> v((size_t)count);
+        for (int i = 0; i < count; ++i) v[(size_t)i] = param(i).def;
         for (auto& c : changes) v[(size_t)c.first] = c.second;
         addProgram(name, v);
     }
@@ -511,7 +777,7 @@ private:
         info.name         = "Acid Rat";
         info.vendor       = "Gonzi Audio";   // must match plugin.json "manufacturer"
         info.uniqueId     = MPC_FOURCC(kUid[0], kUid[1], kUid[2], kUid[3]);   // must match plugin.json "uid"
-        info.version      = 1001;           // 1.0.0.1 = 1.0.1 (the skin; same sound and parameters as 1.0.0)
+        info.version      = 1100;           // 1.1.0.0: the step sequencer (parameters 31..117 appended)
         info.isInstrument = true;
         info.numInputs    = 0;
         info.numOutputs   = 2;
@@ -541,6 +807,17 @@ private:
     float    gateFrac_ = 0.5f;
     int      offCountdown_ = -1;                // frames until the gate falls; -1 = none pending
     bool     seqRunning_ = false, seqSounding_ = false, seqPrevSlide_ = false, wasPlaying_ = false;
+
+    // the step sequencer
+    uint32_t factory_[kNumPatterns][kPatSteps];
+    std::atomic<uint32_t> slots_[kNumPatterns][kPatSteps];     // the eight patterns (the audio thread writes, save reads)
+    std::atomic<int>      slotLen_[kNumPatterns];
+    uint32_t staged_[kNumPatterns][kPatSteps];                 // a loaded state, until reset() takes it
+    int      stagedLen_[kNumPatterns];
+    std::atomic<bool> stagedReady_{false};
+    int  source_ = 0, curPattern_ = 0, patSteps_ = kPatSteps, pos_ = -1, writeCursor_ = 0, writeHeld_ = -1;
+    bool writing_ = false, lastWrite_ = false, lastCopy_ = false, lastClear_ = false;
+    bool dirty_[kNumParams] = {}, anyDirty_ = false;
 
     std::vector<float> delayL_, delayR_;
     size_t delayPos_ = 0;
