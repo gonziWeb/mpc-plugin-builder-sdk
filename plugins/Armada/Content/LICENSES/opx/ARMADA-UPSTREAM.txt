@@ -1,0 +1,4 @@
+Felucca OPX by thomasgregorymarsden-code (github.com/thomasgregorymarsden-code/Felucca-opx at e6cc849)
+GPL-3.0-only (the parts under other licences: LICENSING.md)
+upstream commit: e6cc849
+These files are unchanged copies. build/gen/* were written by the firmware's own generators (its tools/).

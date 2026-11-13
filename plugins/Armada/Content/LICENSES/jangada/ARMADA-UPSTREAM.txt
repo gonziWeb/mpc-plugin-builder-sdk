@@ -1,0 +1,4 @@
+Jangada by zednaked (github.com/zednaked/jangada at b546675)
+GPL-3.0-only (the parts under other licences: LICENSING.md)
+upstream commit: b546675
+These files are unchanged copies. build/gen/* were written by the firmware's own generators (its tools/).

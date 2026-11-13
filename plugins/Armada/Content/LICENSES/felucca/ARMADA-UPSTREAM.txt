@@ -1,0 +1,4 @@
+Felucca by Leo Kuroshita (Hugelton Instruments) (github.com/hugelton/Felucca at 6b1115b)
+GPL-3.0-only (the parts under other licences: LICENSING.md)
+upstream commit: 6b1115b
+These files are unchanged copies. build/gen/* were written by the firmware's own generators (its tools/).

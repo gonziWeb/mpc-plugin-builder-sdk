@@ -1,0 +1,4 @@
+Clipper by 3dSam (isod89) (github.com/isod89/clipper-fm1 at 7bc15a9)
+GPL-3.0-only (the parts under other licences: LICENSING.md)
+upstream commit: 7bc15a9
+These files are unchanged copies. build/gen/* were written by the firmware's own generators (its tools/).

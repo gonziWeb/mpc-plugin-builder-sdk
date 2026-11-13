@@ -82,6 +82,7 @@ Our plugin projects live in `plugins/` and are tracked in git in this fork (`bui
 | Slow Garden | instrument, generative ambient that plays itself (AMB-1's engine: breathing pad, bells on loops of 13/17/23/29 beats, gliding bass, Euclidean pulse, tape echo + plate) | GggB | 1.0.0 | **MPL-2.0** | `plugins/Slow Garden/` |
 | Monolith | effect, guitar rig builder: 6 blocks in any order (Neural Amp Modeler amp and pedal captures, cabinet IRs, gate, EQ, 10 drives, 8 delays, 8 reverbs), pedalboard screen | GMdM | 0.4.0 | MIT (NAM Core MIT, Eigen MPL-2.0, json MIT) | `plugins/Monolith/` |
 | Patina | effect, lo-fi texture (vinyl crackle / pops / dust / rumble / warp, cassette wow / flutter / drive / hiss / dropouts, sampler bits + rate, small dark room, Age macro) | GIi1 | 1.0.0 | MIT | `plugins/Patina/` |
+| Armada | instrument, 89 synth engines: the audio cores of 18 open FM-1 firmwares (Felucca and its family, OberVave, Shine On) + Mutable Instruments' Plaits, state per instance | GlB7 | 1.0.0 | **GPL-3.0-only** | `plugins/Armada/` |
 
 Dusty Tape parameter order (permanent): Output, Sync, Division, Time, Feedback, Tone, Low Cut, Mix, Wow, Flutter,
 Drive, Hiss, Bits, Rate, Ping Pong.
@@ -272,3 +273,62 @@ Noise = Follow gates the noises on the input envelope (500 ms release). Sections
 `render_demo ... 90 -1 0 1 2 3 4 5 6 7 8 9`. Simulator: PASS at blocks 32 / 128 / 512, about 0.5 % of a desktop core.
 Not yet tried on the MPC: CPU on the One, the screen (SDK kit, amber, pages MAIN / VINYL / TAPE / GRAIN), and whether
 the crackle level suits real drum tracks (tuned on the synthetic demo loop only).
+
+Armada (1.0.0, uid GlB7, instrument, GPL-3.0-only): 89 synth engines in one instrument. Each "pack" is the audio core
+of one open M-VAVE FM-1 firmware (Felucca and 15 firmwares forked from it, OberVave, Shine On), compiled from that
+firmware's own C sources, plus Mutable Instruments' Plaits (24 models, MIT, `src/plaits` + `src/stmlib` unchanged).
+`ENGINES.md` lists every engine, its pack and its parameters; `LICENSING.md` every firmware, author and licence.
+
+Armada parameter order (permanent, 71): Master, Engine (choice, 89: the order of `src/armada_engines.h`, append
+only), Sound (0-255: the engine's own factory sounds), E1..E32 (the engine's own parameters, normalised 0..1 over the
+engine's range; the value text is "<the parameter's name> <its value>", "-" = unused), then Attack, Decay, Sustain,
+Release, Flt Env, Pit Env, Shp Env, LFO Rate, LFO Wave, LFO Fade, LFO>Pitch, LFO>Filter, LFO>Shape, LFO>Level, Voice,
+Glide, Detune, Spread, Drive, Chorus, Delay, Reverb, Dly Time, Dly Fdbk, Rev Size, Rev Damp, Rev Type, Cho Rate,
+Cho Depth, Flt Type (these 30 are `armada::CommonIndex` in `src/armada_pack.h`, same order, in the firmwares' 0..127
+units), then Octave, Tune, Bend, Vel Sens, Low Cut, Cutoff. Programs (152, append only with the engines): each
+engine's first one or two sounds. Extra state "ARM1": the engine and sound the parameters belong to.
+
+How it works. `tools/make_pack.py <pack>` writes `src/pk_<pack>.cpp` from `tools/packs/<pack>.py`: it flattens the
+firmware's translation unit with gcc -E (comments kept, system headers left as #include), parses it with libclang
+(`pip install libclang`) as C, and rewrites every reference to a variable with static storage (file level, and
+function statics, hoisted) as `PKV(k)`: the same variable inside a block per plugin instance, reached through one
+thread-local pointer (`pk_tls`) plus a compile-time offset. Const tables that hold such variables' addresses are
+instanced too, and the addresses inside a new block are moved to it. It also turns C-only constructs into C++
+(implicit `void *` conversions, tentative definitions, C++ keywords used as names, `restrict`, `&(T){v}`), runs
+`__attribute__((constructor))` functions per instance, and replaces `fm1_xip_ptr` (the FM-1's flash at a fixed
+address: user samples / wavetables) by a page of zeros. NEVER let a pack read a hardware address: it segfaults the
+host; `tools/test_pack.cpp fuzz` (every value of every small parameter, random settings, notes) must pass for every
+pack, and the test's two-instances check must show no "INSTANCES DIFFER" (Plaits' noise models differ: its random
+generator is one shared static, harmless).
+- Felucca family (`tools/packs/_fel.py`): the pack is the firmware's `tests/hostsim.c` include list (core.h,
+  engines.c, params.c, mod.c, voice.c, fx.c, seq.c) and its own `host_tracks_init` / `host_preset`, so the voices,
+  envelopes, LFO, sends, chorus / delay / reverb and master are the firmware's own code; the plugin plays part 1
+  (`trk_note_on`, `mix_block`). A spec's `expose` lists the engines offered; `fixes` / `pre_fixes` are regex fix-ups;
+  `own_sound` / `own_name` give an engine sounds of ours (Melodee's Prophet).
+- OberVave family (`_obv.py`, zvenson's layout: PDEF table, `live` patch, `note_event`, `engine_audio`): the spec maps
+  up to 32 patch parameters to E1.. and others to the shared parameters.
+- Plaits: `src/pk_plaits.cpp` + `pk_plaits_b.cpp` (two units: names clash in one), six voices, the module's TRIGGER
+  held as a gate, an ADSR on its LEVEL input, +1.47 semitones because the module's code assumes 48 kHz.
+- `tools/make_upstream.py` keeps the unchanged upstream files each pack needs in `upstream/<pack>.tar.xz`
+  (`ARMADA_UPSTREAM=<dir of the unpacked archives> python3 tools/make_pack.py <pack>` regenerates byte for byte; the
+  working clones were in /home/claude/src). `tools/pack_info.cpp` lists a pack's engines / parameters (ENGINES.md was
+  made from it). The firmwares' generated headers (build/gen) came from their own tools (`tools/gen_upstream.py`).
+- The plugin (`src/Armada.cpp`): a pack's Part is made (about 300 KB) on the first use of one of its engines, from
+  the host's parameter / program / state calls, never in process(). An Engine or Sound change fades one block out,
+  loads the sound, writes the sound's values into E1.. and the shared parameters and reports them to the host
+  (`notifyHostParameterChanged`, end of the block); after a state load the sound is loaded for its hidden parts and
+  the saved parameters win. Parts render 32 frames at 44.1 kHz into a small FIFO; other host rates: linear resampling.
+  Output: Low Cut, Cutoff (the plugin's own), Master, a soft knee above 0.8.
+- Sound banks left out on purpose: Melodee's Prophet-5 and CZ-1 factory banks (zeroed in the generated file; Pro-5 has
+  12 programs of ours, CZ-1 is not offered), Guru-600's factory and community sounds (only its 55 own, sounds 201-255,
+  are offered: `base` / `count` in `armada_engines.h`), Saadet (PPG wavetable ROM data).
+- Checks: `host_sim` PASS (the one WARN is the tail after its random parameter sweep); `gonzi/tools/test_armada.cpp`
+  (sound loading, state round trip, every engine sounds, two instances on two threads); `render_synth` over the 152
+  programs (peaks -17.6 .. -1.4 dBFS, desktop CPU 0.14 .. 1.4 %, median 0.36 %). `SYNTH_BARS` / `SYNTH_TAIL` shorten
+  render_synth's sections for the listening WAVs.
+- Not yet tried on the MPC: CPU on the One (thread-local access on arm32 is one more cost), the 89-entry Engine menu,
+  whether the screen follows the parameters a sound load moves. The ARM builds were not run (no qemu here).
+- Candidates not done: Dungeon Tracker (its hostsim needs UI code), Saadet, S1Vave (OberVave layout, its own
+  parameter list), and the firmwares with their own architectures (CS-1, Scintilla, FM-106, setBfree organ, MONK-1,
+  Frodhes, CYMA-1, OPN-1, SID-1, OPLBOX, Chipbox...): each needs its own glue like `_obv.py` (`tools/packs/_std.py`
+  gives the C++ side for a glue of ~15 sg_* functions). No licence in the repository = not usable (fm1-piano, fm1-p6).
