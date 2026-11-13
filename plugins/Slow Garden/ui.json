@@ -1,0 +1,23 @@
+{
+  "kit": "lime",
+  "pages": [
+    { "name": "GARDEN",
+      "controls": [
+        { "param": "Tempo", "widget": "knob" }, { "param": "Evolve", "widget": "knob" }, { "param": "Motion", "widget": "knob" }, { "param": "Drift", "widget": "knob" },
+        { "param": "Grow", "widget": "switch" }, { "param": "Sync", "widget": "switch" }, { "param": "Freeze", "widget": "switch" }, { "param": "Next Chord", "widget": "switch" },
+        { "param": "Root", "widget": "slider", "overlay": "menu" }, { "param": "Mode", "widget": "slider", "overlay": "menu" }, { "param": "Key Edit", "widget": "switch" }, { "param": "Seed", "widget": "knob" },
+        { "param": "Echo", "widget": "fader" }, { "param": "Reverb", "widget": "fader" }, { "param": "Tune", "widget": "knob", "polarity": "bipolar" }, { "param": "Master", "widget": "fader" }
+      ] },
+    { "name": "LAYERS",
+      "controls": [
+        { "param": "Pad", "widget": "fader" }, { "param": "Swell", "widget": "knob" }, { "param": "Bright", "widget": "knob" }, { "param": "Colour", "widget": "switch" },
+        { "param": "Bells", "widget": "fader" }, { "param": "Density", "widget": "knob" }, { "param": "Bell Tone", "widget": "knob" }, { "param": "Bell Oct", "widget": "knob", "polarity": "bipolar" },
+        { "param": "Bass", "widget": "fader" }, { "param": "Bass Oct", "widget": "knob", "polarity": "bipolar" }, { "param": "Glide", "widget": "knob" }, { "param": "Fifth", "widget": "knob" },
+        { "param": "Pulse", "widget": "fader" }, { "param": "Hits", "widget": "knob" }, { "param": "Swing", "widget": "knob" }, { "param": "Hats", "widget": "knob" }
+      ] },
+    { "name": "SPACE",
+      "controls": [
+        { "param": "Echo Time", "widget": "slider", "overlay": "menu" }, { "param": "Size", "widget": "knob" }, "empty", "empty"
+      ] }
+  ]
+}

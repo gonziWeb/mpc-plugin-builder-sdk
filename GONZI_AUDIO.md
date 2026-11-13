@@ -51,6 +51,15 @@ Read `AGENTS.md` first and follow its workflow and hard rules; this file only ad
    g++ -O2 -std=c++17 -Iframework gonzi/tools/render_acid.cpp -o .sdk-tools/render_acid -ldl
    .sdk-tools/render_acid "plugins/<Name>/build/native/<slug>.so" out.wav 128 0 1 2
    ```
+   Instruments that play themselves (Slow Garden): `gonzi/tools/render_garden.cpp` sends no notes; each program runs in
+   a fresh instance for the given seconds. `GARDEN_SEED` (default 1, 0 = random), `GARDEN_BPM` (Sync = MPC, Grow = Song,
+   transport playing), `MPC_RATE`. `check` runs its behaviour checks (seed, Song restart, beat lock, saved scale,
+   two instances):
+   ```
+   g++ -O2 -std=c++17 -Iframework gonzi/tools/render_garden.cpp -o .sdk-tools/render_garden -ldl
+   .sdk-tools/render_garden "plugins/<Name>/build/native/<slug>.so" out.wav 40 0 2 4
+   .sdk-tools/render_garden "plugins/<Name>/build/native/<slug>.so" check
+   ```
 6. `python tools/package.py "plugins/<Name>"`; hand over the zip and the WAV.
 
 Our plugin projects live in `plugins/` and are tracked in git in this fork (`build/` and `dist/` stay ignored).
@@ -62,6 +71,7 @@ Our plugin projects live in `plugins/` and are tracked in git in this fork (`bui
 | Sabbath Kit | instrument, sampled doom/stoner drum kit + 12 built-in grooves | Gpnq | 2.1.0 | MIT code, **samples CC BY-SA 3.0** | `plugins/Sabbath Kit/` |
 | Grimoire | instrument, dark ambient / dungeon synth (GR!MM + GHOULBOX FM-1 firmwares ported) | Gp4w | 1.2.0 | **GPL-3.0-only** | `plugins/Grimoire/` |
 | Acid Rat | instrument, 303-style acid bass line (X0X's Open303 engine + TB-3PO line generator + 8 x 16-step patterns) | G37u | 1.1.0 | **GPL-3.0-only** | `plugins/Acid Rat/` |
+| Slow Garden | instrument, generative ambient that plays itself (AMB-1's engine: breathing pad, bells on loops of 13/17/23/29 beats, gliding bass, Euclidean pulse, tape echo + plate) | GggB | 1.0.0 | **MPL-2.0** | `plugins/Slow Garden/` |
 
 Dusty Tape parameter order (permanent): Output, Sync, Division, Time, Feedback, Tone, Low Cut, Mix, Wow, Flutter,
 Drive, Hiss, Bits, Rate, Ping Pong.
@@ -155,3 +165,32 @@ the four banks = the four beats, knobs = notes); its preview draws those widgets
 momentary keys, the translucent ColourBar bars, and whether a host call from the audio thread causes any glitch.
 `gonzi/tools/test_acid_steps.cpp` runs 24 checks on it (build line in its header); run it after any change to the
 sequencer. A 1.0.1 state was checked to load unchanged into 1.1.0, and the arm32 build passes host_sim under qemu.
+
+Slow Garden parameter order (permanent, 34): Master, Tempo, Evolve, Motion, Drift, Pad, Swell, Bright, Colour, Bells,
+Density, Bell Tone, Bell Oct, Bass, Bass Oct, Glide, Fifth, Pulse, Hits, Swing, Hats, Echo, Echo Time, Reverb, Size,
+Root, Mode (0-26: the piece, what a program sets), then the player's, which programs leave alone (their value lists
+stop at 27): Tune, Seed, Grow, Sync, Freeze, Next Chord, Key Edit. Choices (append only): Colour Rhodes/Voices; Echo
+Time 1/4., 1/2, 1/2., 1 bar, 2 bars, 4 bars; Root C..B; Mode Ionian, Dorian, Phrygian, Lydian, Mixolyd., Aeolian,
+Pent maj, Pent min; Grow Rest/Always/Song; Sync Off/MPC. Programs (12, append only): 1-8 AMB-1's pieces (read from the
+engine's table; only Master differs, `kPieceTrim`), 9-12 ours (Crypt, Rainlight, Slow Pulse, Still Water).
+
+Slow Garden notes: the engine is AMB-1 (charlesvestal/fm1-amb at da0047d, `app/dsp/amb.c` + `amb.h`, and `fastmath.h`
+from fm1-base at c8e0599; MPL-2.0 since AMB-1 1.0, user chose to port it rather than rewrite). `src/amb/` holds the
+three files byte for byte. AMB-1 keeps its state in file-level globals, so `tools/make_engine.py` rearranges
+`amb.h` + `amb.c` into `src/core/amb_engine.h`: constants at namespace scope (`namespace amb1`), every mutable global
+and every function a member of `amb1::Engine` (re-run after changing `src/amb/`; a simpler recipe than Grimoire's
+`make_instanced.py`, usable when the engine is one file). `gonzi/tools/test_garden_engine.cpp` compares two Engine
+objects with `amb.c` compiled as C: the same samples over 680 s (build lines in its header; run after any engine
+change). The plugin (`SlowGarden.cpp`) makes one Engine per instance (290 KB, in the constructor) and rebuilds it in
+place (`restart()`, no allocation, last sample faded) only on the first `reset()`, after a state load, and on a Song
+start with a seed; a plain resume leaves the garden growing, and a program change regrows over the old tails as
+AMB-1 does. The engine is always rendered 64 frames at a time and read from there, so a seed gives the same piece at
+any host block size. The engine's members are public: with Sync on, the plugin calls `drain()`, then overwrites
+`step_len` and `echo_len_t` with the MPC's exact tempo (the engine's own tempo is a whole number) and moves
+`pulse_left` / `pulse` / `sixteenth` onto the MPC's beat (`lockToBeat`, which allows for the frames already rendered
+ahead). Above 120 bpm the tempo is halved, below 30 doubled. Pads toggle scale notes (the pool's 12 bits, relative to
+the root); the pool is the extra state ("SGD1"). Being MPL, the MPC zip carries `slow-garden-<ver>-source.zip`,
+`LICENSE` and `LICENSING.md` (added by hand after `package.py`), and `Content/` holds the licence on the device.
+Screen: the SDK kit, lime theme, pages GARDEN, LAYERS, SPACE (no themed skin yet). Not yet tried on the MPC: CPU on the
+One (0.5 % of a desktop core), the screen, whether Sync / Grow = Song get tempo, position and play state as in the
+simulator, and whether a project load applies the program after the state (an edited scale would then be lost).
