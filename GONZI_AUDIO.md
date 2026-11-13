@@ -81,6 +81,7 @@ Our plugin projects live in `plugins/` and are tracked in git in this fork (`bui
 | Acid Rat | instrument, 303-style acid bass line (X0X's Open303 engine + TB-3PO line generator + 8 x 16-step patterns + osc / filter / envelope / LFO extensions) | G37u | 1.2.0 | **GPL-3.0-only** | `plugins/Acid Rat/` |
 | Slow Garden | instrument, generative ambient that plays itself (AMB-1's engine: breathing pad, bells on loops of 13/17/23/29 beats, gliding bass, Euclidean pulse, tape echo + plate) | GggB | 1.0.0 | **MPL-2.0** | `plugins/Slow Garden/` |
 | Monolith | effect, guitar rig builder: 6 blocks in any order (Neural Amp Modeler amp and pedal captures, cabinet IRs, gate, EQ, 10 drives, 8 delays, 8 reverbs), pedalboard screen | GMdM | 0.4.0 | MIT (NAM Core MIT, Eigen MPL-2.0, json MIT) | `plugins/Monolith/` |
+| Patina | effect, lo-fi texture (vinyl crackle / pops / dust / rumble / warp, cassette wow / flutter / drive / hiss / dropouts, sampler bits + rate, small dark room, Age macro) | GIi1 | 1.0.0 | MIT | `plugins/Patina/` |
 
 Dusty Tape parameter order (permanent): Output, Sync, Division, Time, Feedback, Tone, Low Cut, Mix, Wow, Flutter,
 Drive, Hiss, Bits, Rate, Ping Pong.
@@ -251,3 +252,18 @@ delete `skins/`, build, make_skin, build. On the MPC One so far: the plugin load
 a guitar plugged straight in plays. Not yet confirmed there: touching a block to select it, the hidden knobs, CPU
 (estimated 12-15 % of a core per A2 Lite capture, two captures at most; A1 "standard" captures are too heavy), and
 whether the output limiter cured a crackle on hard pick attacks.
+
+Patina parameter order (permanent, 23): Output, Age, Tone, Width, Noise, Mix, Crackle, Pops, Dust, Rumble, Warp, Wow,
+Flutter, Drive, Hiss, Dropouts, Hi Loss, Bits, Rate, Room Size, Room Tone, Room Mix, Low Cut. Choices (append only):
+Noise Always/Follow. Programs (10, append only): Patina, Clean Vinyl, Dusty Crate, Needle Drop, Cassette,
+Broken Walkman, SP Grit, Far Radio, Master Dust, Dream Tape.
+
+Patina notes: our own DSP, no samples (every noise is synthesised), no third-party code. Chain: in -> room (4-delay
+Householder FDN + 2 allpass diffusers) -> speed wobble on a short delay (warp = 33 rpm, wow, flutter) -> dropouts ->
+tanh drive -> Hi Loss -> sample-and-hold + bit reduction -> + noises x gate -> Low Cut -> Tone -> width -> mix ->
+output. The room is first so its tail gets the dirt too. Age multiplies every VINYL and TAPE amount and slides Bits
+from 16 and Rate from 44.1 kHz towards their settings; Tone, Low Cut, Width, the room and Mix are outside Age.
+Noise = Follow gates the noises on the input envelope (500 ms release). Sections at zero are skipped. Listening render:
+`render_demo ... 90 -1 0 1 2 3 4 5 6 7 8 9`. Simulator: PASS at blocks 32 / 128 / 512, about 0.5 % of a desktop core.
+Not yet tried on the MPC: CPU on the One, the screen (SDK kit, amber, pages MAIN / VINYL / TAPE / GRAIN), and whether
+the crackle level suits real drum tracks (tuned on the synthetic demo loop only).

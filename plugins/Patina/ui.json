@@ -1,0 +1,57 @@
+{
+  "kit": "amber",
+  "pages": [
+    {
+      "name": "MAIN",
+      "controls": [
+        { "param": "Age", "widget": "knob" },
+        { "param": "Tone", "widget": "knob" },
+        { "param": "Low Cut", "widget": "knob" },
+        { "param": "Width", "widget": "knob" },
+        { "param": "Noise", "widget": "switch" },
+        "empty",
+        { "param": "Mix", "widget": "fader" },
+        { "param": "Output", "widget": "fader", "polarity": "bipolar" }
+      ]
+    },
+    {
+      "name": "VINYL",
+      "controls": [
+        { "param": "Crackle", "widget": "knob" },
+        { "param": "Pops", "widget": "knob" },
+        { "param": "Dust", "widget": "knob" },
+        { "param": "Rumble", "widget": "knob" },
+        { "param": "Warp", "widget": "knob" },
+        "empty",
+        "empty",
+        "empty"
+      ]
+    },
+    {
+      "name": "TAPE",
+      "controls": [
+        { "param": "Wow", "widget": "knob" },
+        { "param": "Flutter", "widget": "knob" },
+        { "param": "Drive", "widget": "knob" },
+        { "param": "Hiss", "widget": "knob" },
+        { "param": "Dropouts", "widget": "knob" },
+        { "param": "Hi Loss", "widget": "knob" },
+        "empty",
+        "empty"
+      ]
+    },
+    {
+      "name": "GRAIN",
+      "controls": [
+        { "param": "Bits", "widget": "knob" },
+        { "param": "Rate", "widget": "knob" },
+        "empty",
+        "empty",
+        { "param": "Room Size", "widget": "knob" },
+        { "param": "Room Tone", "widget": "knob" },
+        { "param": "Room Mix", "widget": "fader" },
+        "empty"
+      ]
+    }
+  ]
+}
