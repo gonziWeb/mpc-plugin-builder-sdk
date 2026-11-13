@@ -161,13 +161,18 @@ inline int levelPot(int def, float lvl)
 }
 
 // ---- note maps -------------------------------------------------------------------------------------------------
-// MPC (default): made for the MPC's pads on a plugin track, whatever octave or pad bank: every octave holds the kit.
-//   C kick   C# rim   D snare   D# clap   E closed hat   F open hat   F# cowbell / ride
-//   G low tom   G# cymbal   A mid tom   A# cowbell / ride   B high tom
+// MPC (default): made for the MPC's own pad setup on a plugin track (Pad Perform: Notes, C major - white keys only -
+// or Chromatic), whatever the bank or octave. Every C is the kick; the other white keys alternate between two sets
+// from one octave to the next, so 16 pads in a row hold the whole kit.
+//   even octaves (C2, C4, ..):  C kick  D snare  E closed hat  F open hat        G low tom  A mid tom     B high tom
+//   odd octaves  (C1, C3, ..):  C kick  D clap   E rim         F cowbell / ride  G cymbal   A closed hat  B open hat
+//   black keys: C# rim, D# clap, F# cowbell / ride, G# cymbal, A# cowbell / ride
 inline int trackForScale(int note)
 {
-    static const int m[12] = {tBD, tRS, tSD, tCP, tCH, tOH, tPC, tLT, tCY, tMT, tPC, tHT};
-    return m[((note % 12) + 12) % 12];
+    static const int a[12] = {tBD, tRS, tSD, tCP, tCH, tOH, tPC, tLT, tCY, tMT, tPC, tHT};
+    static const int b[12] = {tBD, tRS, tCP, tCP, tRS, tPC, tPC, tCY, tCY, tCH, tPC, tOH};
+    if (note < 0) note = 0;
+    return ((note / 12) & 1) ? b[note % 12] : a[note % 12];
 }
 // GM: General MIDI drum notes (for MIDI files and the MPC's "Classic" pad layout).
 inline int trackForGM(int n)

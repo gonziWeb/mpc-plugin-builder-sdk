@@ -238,7 +238,7 @@ int main(int argc, char** argv)
         Inst a; a.set(pSeq, choice(2, 3)); a.run(0.05);
         a.note(14, 100); a.run(0.05);
         const bool pat = std::lround(a.get(pPattern) * 7.0f) == 2;
-        a.note(38, 100); a.run(0.05);                                    // D = snare
+        a.note(50, 100); a.run(0.05);                                    // D in an even octave = snare
         check(pat, "notes 12..19 choose pattern 1..8");
         check(std::lround(a.get(pTrack) * 10.0f) == 1, "Pad Sel: playing the snare pad shows the snare's steps");
     }

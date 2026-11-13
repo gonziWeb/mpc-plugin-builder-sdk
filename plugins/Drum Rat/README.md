@@ -30,12 +30,16 @@ is the factory level. `BD Tone`, `BD Attack`, `SD Tone` and `SD Snappy` work the
 
 ## Playing it from the pads
 
-**Pad Map = MPC** (default): every octave holds the whole kit, so it works from any pad bank or octave of a plugin
-track.
+**Pad Map = MPC** (default): made for the MPC's own pad setup on a plugin track (Pad Perform "Notes" in C major,
+which sends white keys only, or Chromatic), from any bank or octave. Every C is the kick; the other white keys
+alternate between two sets from one octave to the next, so sixteen pads in a row hold the whole kit.
 
-| Note | C | C# | D | D# | E | F | F# | G | G# | A | A# | B |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Track | BD | RS | SD | CP | CH | OH | PC | LT | CY | MT | PC | HT |
+| Note | C | D | E | F | G | A | B |
+|---|---|---|---|---|---|---|---|
+| Even octaves (C2 = 48, C4 = 72, ...) | BD | SD | CH | OH | LT | MT | HT |
+| Odd octaves (C1 = 36, C3 = 60, ...) | BD | CP | RS | PC | CY | CH | OH |
+
+Black keys, in every octave: C# RS, D# CP, F# PC, G# CY, A# PC.
 
 **Pad Map = GM**: General MIDI drum notes (35/36 BD, 37 RS, 38/40 SD, 39 CP, 41/43 LT, 45/47 MT, 48/50 HT, 42/44 CH,
 46 OH, 49/52/55/57 CY, the rest PC), for MIDI files and the MPC's "Classic" pad layout.

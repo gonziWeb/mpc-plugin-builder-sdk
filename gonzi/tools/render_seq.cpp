@@ -3,8 +3,8 @@
 // Usage: render_seq <plugin.so> <out.wav> <bpm> <bars> <spec> [<spec> ...]
 //   spec: <program>[/<paramIndex>=<normalised 0..1>]...   e.g. 1/58=0.5/59=0.142857
 //   Each section: the program is chosen, the listed parameters are set, the transport runs for <bars> bars, then a
-//   1.5 s tail with the transport stopped. With "hits" as <bars>, no transport: notes 36..47 (one octave of the
-//   MPC pad map) are played one by one, soft (velocity 88) then accented (127).
+//   1.5 s tail with the transport stopped. With "hits" as <bars>, no transport: the fourteen white keys from note
+//   48 (two octaves of an MPC pad map) are played one by one, soft (velocity 88) then accented (127).
 //   Sample rate 44100 (set MPC_RATE=48000 to test another host rate). MPC_BLOCK sets the block size (default 128).
 #include <dlfcn.h>
 #include <algorithm>
@@ -43,7 +43,7 @@ int main(int argc, char** argv)
     AEffect* fx = ((Main)dlsym(lib, "VSTPluginMain"))(host);
     const double bpm = atof(argv[3]);
     const bool hits = !strcmp(argv[4], "hits");
-    const double bars = hits ? 6.0 : atof(argv[4]);
+    const double bars = hits ? 7.0 : atof(argv[4]);
     const size_t songLen = (size_t)(bars * 4.0 * 60.0 / bpm * g_sr), total = songLen + (size_t)(1.5 * g_sr);
 
     fx->dispatcher(fx, effOpen, 0, 0, nullptr, 0);
@@ -69,11 +69,13 @@ int main(int argc, char** argv)
         char pname[64] = {0}; fx->dispatcher(fx, effGetProgramName, 0, 0, pname, 0);
         std::vector<std::pair<size_t, Ev>> ev;
         if (hits)
-            for (int k = 0; k < 24; ++k)
+            for (int k = 0; k < 28; ++k)
             {
+                static const int white[7] = {0, 2, 4, 5, 7, 9, 11};
                 const double beat = k * 1.0;
-                ev.push_back({(size_t)(beat * 60.0 / bpm * g_sr), Ev{beat, 36 + k / 2, (k & 1) ? 127 : 88}});
-                ev.push_back({(size_t)((beat + 0.5) * 60.0 / bpm * g_sr), Ev{beat, 36 + k / 2, 0}});
+                const int note = 48 + 12 * ((k / 2) / 7) + white[(k / 2) % 7];
+                ev.push_back({(size_t)(beat * 60.0 / bpm * g_sr), Ev{beat, note, (k & 1) ? 127 : 88}});
+                ev.push_back({(size_t)((beat + 0.5) * 60.0 / bpm * g_sr), Ev{beat, note, 0}});
             }
         size_t ei = 0;
         std::vector<float> oL(block), oR(block);

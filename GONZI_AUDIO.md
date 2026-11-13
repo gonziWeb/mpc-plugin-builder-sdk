@@ -69,8 +69,8 @@ Read `AGENTS.md` first and follow its workflow and hard rules; this file only ad
    .sdk-tools/render_guitar "plugins/<Name>/build/native/<slug>.so" out.wav 70 -1 0 2 2:13=0.4444,37=1
    ```
    Instruments with their own sequencer (Drum Rat): `gonzi/tools/render_seq.cpp` runs the transport for some bars per
-   section; a section is `<program>[/<paramIndex>=<normalised>]...`. `hits` instead of the bars plays notes 36..47 one
-   by one, soft then accented. Prints peak, RMS and desktop CPU (`MPC_RATE`, `MPC_BLOCK`):
+   section; a section is `<program>[/<paramIndex>=<normalised>]...`. `hits` instead of the bars plays the fourteen white keys
+   from note 48 one by one, soft then accented. Prints peak, RMS and desktop CPU (`MPC_RATE`, `MPC_BLOCK`):
    ```
    g++ -O2 -std=c++17 -Iframework gonzi/tools/render_seq.cpp -o .sdk-tools/render_seq -ldl
    .sdk-tools/render_seq "plugins/Drum Rat/build/native/drum-rat.so" out.wav 122 2 0/58=0.5 1/58=0.5/59=0.285714
@@ -304,7 +304,9 @@ up (Level, Tune, Decay / Tail, Drive, Dist, Pan, Tone, Attack, Snappy, Pitch, So
 `pushPots()` sends what changed once per block. Tune / Decay / the four extras are offsets around the factory pot; Level
 80 % = factory. On the 808 a track's knobs edit the sound its switch selects, so the switch is set first and the
 track's pots are sent again. Trims by measurement: 808 x 0.80, 909 x 0.18, 808 cowbell at half level. An "On" step is
-velocity 0.502 on the 808 and 88/127 on the 909 (X0X's own), an accent 1.0. Sequencer: `slots_[8][11][16]` atomics
+velocity 0.502 on the 808 and 88/127 on the 909 (X0X's own), an accent 1.0. Pad Map MPC follows Sabbath Kit 2.2's
+finding (the One's pads send C major): every C = kick, the other white keys alternate between two sets by octave
+parity (`trackForScale`). Sequencer: `slots_[8][11][16]` atomics
 (0 / 1 / 2) and lengths, extra state "DRP1", staging copy swapped in by `reset()` as in Acid Rat; the 16 step
 parameters show one track (`Track`), copied to the slot every block, rewritten when Track or Pattern changes
 (`showRow`); programs stop at parameter 56 so they never touch the player (Slow Garden's way, no restoring needed).
