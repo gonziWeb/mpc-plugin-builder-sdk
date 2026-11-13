@@ -34,7 +34,8 @@ Pick one on the **GROOVE** page (or set `Groove` with a Q-Link):
   position. Put Sabbath Kit on a track, choose a groove, press Play. Pads still play the kit on top.
 - **Groove Mode = Pad** (with Pad Map = GM): note **60** starts and stops the groove (at the MPC tempo, 70 BPM if none), note **61**
   plays a fill on the next bar.
-- **Fill**: Off, every 4 bars or every 8 bars. The bar after a fill gets a crash.
+- **Fill**: Off, every 4 bars or every 8 bars; each groove has three fills that take turns. The bar after a fill gets
+  a crash. Since 2.2 every groove is a 4-bar phrase with ghost notes, foot hat and kick variations.
 - **Groove Vel**: overall dynamics. **Humanize** adds small timing/velocity variations and lays the snare back.
 
 **MIDI files**: the same 12 grooves are in `Content/MIDI Grooves/` (and in the zip) as 8-bar MIDI files (fills on
@@ -43,18 +44,23 @@ bars 4 and 8). Load one on the MPC as a sequence and edit it note by note, then 
 
 ## Pads
 
-**Pad Map** (GROOVE page) decides which pad plays which drum. The default, **C2**, is a 16-pad layout, drawn on the
-GROOVE page:
+**Pad Map** (GROOVE page) decides which pad plays which drum. The default, **MPC**, is made for the MPC's own pad
+setup on a plugin track (Pad Perform: Notes, C major): **every C is a kick, every D a snare**, and the other notes
+alternate between two sets from one octave to the next, so the 16 pads always hold the whole kit:
 
 | | | | |
 |---|---|---|---|
-| 13 Crash A20 | 14 Crash 2002 | 15 Crash K17 | 16 Ride wash |
-| 9 Snare edge | 10 Cross-stick | 11 Ride | 12 Ride bell |
-| 5 Tom 3 | 6 Tom 2 | 7 Tom 1 | 8 Pedal hat |
-| **1 Kick** | **2 Snare** | 3 Closed hat | 4 Open hat (choked by 3 and 8) |
+| 13 Crash 2002 | 14 Pedal hat | 15 Kick | 16 Snare |
+| 9 Snare edge | 10 Ride | 11 Ride bell | 12 Crash A20 |
+| 5 Tom 3 | 6 Tom 2 | 7 Tom 1 | 8 Kick |
+| **1 Kick** | **2 Snare** | 3 Closed hat | 4 Open hat |
 
-- **C2**: pad 1 = note 48 (and the layout repeats every 16 notes, so any 16 pads in a row hold the whole kit).
-- **C1**: the same layout with pad 1 = note 36. If the kick is not on pad 1 with C2, use C1.
+(In a bank that starts one octave higher or lower the two halves swap: pads 1-7 hold kick, snare edge, ride, bell,
+crashes, pedal hat and pads 8-14 the hats and toms. Pad 1 is always the kick.) With Pad Perform on Chromatic the
+black keys add cross-stick, clap, tambourine, cowbell, crash K17 / ride wash.
+
+- **C2 / C1**: a 16-pad layout for chromatic pads starting at note 48 / 36 (kick, snare, hat, open hat / toms, pedal
+  hat / snare edge, cross-stick, ride, bell / crashes, ride wash).
 - **GM**: General MIDI notes, for the MIDI groove files and GM keyboards/sequences: 36 kick, 37 cross-stick, 38 snare,
   39 clap, 40 snare edge, 41/43 tom 3, 45 tom 2, 47 tom 1 edge, 48/50 tom 1, 42 closed hat, 44 pedal hat, 46 open hat,
   49 crash A20, 57 crash K17, 52/55 crash 2002, 51 ride, 53 ride bell, 59 ride shank, 54 tambourine, 56 cowbell.
@@ -76,7 +82,7 @@ GROOVE page:
 | 37 | Fill | Off / 4 Bars / 8 Bars |
 | 38 | Groove Vel | Groove dynamics |
 | 39 | Play | On: the groove plays by itself (random groove if Groove is Off) |
-| 40 | Pad Map | C2 / C1 (16-pad layout from note 48 / 36) / GM |
+| 40 | Pad Map | MPC (default) / C2 / C1 / GM |
 
 Pages: **GROOVE**, **KIT**, **TOMS**, **CYMBALS**.
 
