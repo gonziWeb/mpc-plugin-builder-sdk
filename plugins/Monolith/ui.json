@@ -1,0 +1,835 @@
+{
+  "kit": {
+    "theme": "mono",
+    "accent": "ffe0a020"
+  },
+  "pages": [
+    {
+      "name": "RIG",
+      "controls": [
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        {
+          "param": "In Chan",
+          "widget": "switch"
+        },
+        {
+          "param": "Quality",
+          "widget": "switch"
+        },
+        {
+          "param": "DI Comp",
+          "widget": "switch"
+        },
+        "empty",
+        {
+          "param": "Input",
+          "widget": "knob",
+          "polarity": "bipolar"
+        },
+        {
+          "param": "Output",
+          "widget": "fader"
+        }
+      ]
+    },
+    {
+      "name": "BLK 1-2",
+      "controls": [
+        {
+          "param": "Block 1",
+          "widget": "slider",
+          "overlay": "menu"
+        },
+        {
+          "param": "1 File",
+          "widget": "slider",
+          "visibleWhen": {
+            "param": "Block 1",
+            "choice": "Amp"
+          }
+        },
+        {
+          "param": "1 On",
+          "widget": "switch"
+        },
+        {
+          "param": "1 Level",
+          "widget": "fader",
+          "polarity": "bipolar"
+        },
+        {
+          "param": "1 K1",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 1",
+            "choice": "Gate"
+          }
+        },
+        {
+          "param": "1 K2",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 1",
+            "choice": "Gate"
+          }
+        },
+        {
+          "param": "1 K3",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 1",
+            "choice": "Cab IR"
+          }
+        },
+        {
+          "param": "1 K4",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 1",
+            "choice": "EQ"
+          }
+        },
+        {
+          "param": "Block 2",
+          "widget": "slider",
+          "overlay": "menu"
+        },
+        {
+          "param": "2 File",
+          "widget": "slider",
+          "visibleWhen": {
+            "param": "Block 2",
+            "choice": "Amp"
+          }
+        },
+        {
+          "param": "2 On",
+          "widget": "switch"
+        },
+        {
+          "param": "2 Level",
+          "widget": "fader",
+          "polarity": "bipolar"
+        },
+        {
+          "param": "2 K1",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 2",
+            "choice": "Gate"
+          }
+        },
+        {
+          "param": "2 K2",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 2",
+            "choice": "Gate"
+          }
+        },
+        {
+          "param": "2 K3",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 2",
+            "choice": "Cab IR"
+          }
+        },
+        {
+          "param": "2 K4",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 2",
+            "choice": "EQ"
+          }
+        }
+      ]
+    },
+    {
+      "name": "BLK 3-4",
+      "controls": [
+        {
+          "param": "Block 3",
+          "widget": "slider",
+          "overlay": "menu"
+        },
+        {
+          "param": "3 File",
+          "widget": "slider",
+          "visibleWhen": {
+            "param": "Block 3",
+            "choice": "Amp"
+          }
+        },
+        {
+          "param": "3 On",
+          "widget": "switch"
+        },
+        {
+          "param": "3 Level",
+          "widget": "fader",
+          "polarity": "bipolar"
+        },
+        {
+          "param": "3 K1",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 3",
+            "choice": "Gate"
+          }
+        },
+        {
+          "param": "3 K2",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 3",
+            "choice": "Gate"
+          }
+        },
+        {
+          "param": "3 K3",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 3",
+            "choice": "Cab IR"
+          }
+        },
+        {
+          "param": "3 K4",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 3",
+            "choice": "EQ"
+          }
+        },
+        {
+          "param": "Block 4",
+          "widget": "slider",
+          "overlay": "menu"
+        },
+        {
+          "param": "4 File",
+          "widget": "slider",
+          "visibleWhen": {
+            "param": "Block 4",
+            "choice": "Amp"
+          }
+        },
+        {
+          "param": "4 On",
+          "widget": "switch"
+        },
+        {
+          "param": "4 Level",
+          "widget": "fader",
+          "polarity": "bipolar"
+        },
+        {
+          "param": "4 K1",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 4",
+            "choice": "Gate"
+          }
+        },
+        {
+          "param": "4 K2",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 4",
+            "choice": "Gate"
+          }
+        },
+        {
+          "param": "4 K3",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 4",
+            "choice": "Cab IR"
+          }
+        },
+        {
+          "param": "4 K4",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 4",
+            "choice": "EQ"
+          }
+        }
+      ]
+    },
+    {
+      "name": "BLK 5-6",
+      "controls": [
+        {
+          "param": "Block 5",
+          "widget": "slider",
+          "overlay": "menu"
+        },
+        {
+          "param": "5 File",
+          "widget": "slider",
+          "visibleWhen": {
+            "param": "Block 5",
+            "choice": "Amp"
+          }
+        },
+        {
+          "param": "5 On",
+          "widget": "switch"
+        },
+        {
+          "param": "5 Level",
+          "widget": "fader",
+          "polarity": "bipolar"
+        },
+        {
+          "param": "5 K1",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 5",
+            "choice": "Gate"
+          }
+        },
+        {
+          "param": "5 K2",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 5",
+            "choice": "Gate"
+          }
+        },
+        {
+          "param": "5 K3",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 5",
+            "choice": "Cab IR"
+          }
+        },
+        {
+          "param": "5 K4",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 5",
+            "choice": "EQ"
+          }
+        },
+        {
+          "param": "Block 6",
+          "widget": "slider",
+          "overlay": "menu"
+        },
+        {
+          "param": "6 File",
+          "widget": "slider",
+          "visibleWhen": {
+            "param": "Block 6",
+            "choice": "Amp"
+          }
+        },
+        {
+          "param": "6 On",
+          "widget": "switch"
+        },
+        {
+          "param": "6 Level",
+          "widget": "fader",
+          "polarity": "bipolar"
+        },
+        {
+          "param": "6 K1",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 6",
+            "choice": "Gate"
+          }
+        },
+        {
+          "param": "6 K2",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 6",
+            "choice": "Gate"
+          }
+        },
+        {
+          "param": "6 K3",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 6",
+            "choice": "Cab IR"
+          }
+        },
+        {
+          "param": "6 K4",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 6",
+            "choice": "EQ"
+          }
+        }
+      ]
+    },
+    {
+      "name": "E1",
+      "controls": [
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        {
+          "param": "Block 1",
+          "widget": "slider",
+          "overlay": "menu"
+        },
+        {
+          "param": "1 File",
+          "widget": "slider",
+          "visibleWhen": {
+            "param": "Block 1",
+            "choice": "Amp"
+          }
+        },
+        {
+          "param": "1 On",
+          "widget": "switch"
+        },
+        {
+          "param": "1 Level",
+          "widget": "fader",
+          "polarity": "bipolar"
+        },
+        {
+          "param": "1 K1",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 1",
+            "choice": "Gate"
+          }
+        },
+        {
+          "param": "1 K2",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 1",
+            "choice": "Gate"
+          }
+        },
+        {
+          "param": "1 K3",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 1",
+            "choice": "Cab IR"
+          }
+        },
+        {
+          "param": "1 K4",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 1",
+            "choice": "EQ"
+          }
+        }
+      ]
+    },
+    {
+      "name": "E2",
+      "controls": [
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        {
+          "param": "Block 2",
+          "widget": "slider",
+          "overlay": "menu"
+        },
+        {
+          "param": "2 File",
+          "widget": "slider",
+          "visibleWhen": {
+            "param": "Block 2",
+            "choice": "Amp"
+          }
+        },
+        {
+          "param": "2 On",
+          "widget": "switch"
+        },
+        {
+          "param": "2 Level",
+          "widget": "fader",
+          "polarity": "bipolar"
+        },
+        {
+          "param": "2 K1",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 2",
+            "choice": "Gate"
+          }
+        },
+        {
+          "param": "2 K2",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 2",
+            "choice": "Gate"
+          }
+        },
+        {
+          "param": "2 K3",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 2",
+            "choice": "Cab IR"
+          }
+        },
+        {
+          "param": "2 K4",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 2",
+            "choice": "EQ"
+          }
+        }
+      ]
+    },
+    {
+      "name": "E3",
+      "controls": [
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        {
+          "param": "Block 3",
+          "widget": "slider",
+          "overlay": "menu"
+        },
+        {
+          "param": "3 File",
+          "widget": "slider",
+          "visibleWhen": {
+            "param": "Block 3",
+            "choice": "Amp"
+          }
+        },
+        {
+          "param": "3 On",
+          "widget": "switch"
+        },
+        {
+          "param": "3 Level",
+          "widget": "fader",
+          "polarity": "bipolar"
+        },
+        {
+          "param": "3 K1",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 3",
+            "choice": "Gate"
+          }
+        },
+        {
+          "param": "3 K2",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 3",
+            "choice": "Gate"
+          }
+        },
+        {
+          "param": "3 K3",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 3",
+            "choice": "Cab IR"
+          }
+        },
+        {
+          "param": "3 K4",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 3",
+            "choice": "EQ"
+          }
+        }
+      ]
+    },
+    {
+      "name": "E4",
+      "controls": [
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        {
+          "param": "Block 4",
+          "widget": "slider",
+          "overlay": "menu"
+        },
+        {
+          "param": "4 File",
+          "widget": "slider",
+          "visibleWhen": {
+            "param": "Block 4",
+            "choice": "Amp"
+          }
+        },
+        {
+          "param": "4 On",
+          "widget": "switch"
+        },
+        {
+          "param": "4 Level",
+          "widget": "fader",
+          "polarity": "bipolar"
+        },
+        {
+          "param": "4 K1",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 4",
+            "choice": "Gate"
+          }
+        },
+        {
+          "param": "4 K2",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 4",
+            "choice": "Gate"
+          }
+        },
+        {
+          "param": "4 K3",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 4",
+            "choice": "Cab IR"
+          }
+        },
+        {
+          "param": "4 K4",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 4",
+            "choice": "EQ"
+          }
+        }
+      ]
+    },
+    {
+      "name": "E5",
+      "controls": [
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        {
+          "param": "Block 5",
+          "widget": "slider",
+          "overlay": "menu"
+        },
+        {
+          "param": "5 File",
+          "widget": "slider",
+          "visibleWhen": {
+            "param": "Block 5",
+            "choice": "Amp"
+          }
+        },
+        {
+          "param": "5 On",
+          "widget": "switch"
+        },
+        {
+          "param": "5 Level",
+          "widget": "fader",
+          "polarity": "bipolar"
+        },
+        {
+          "param": "5 K1",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 5",
+            "choice": "Gate"
+          }
+        },
+        {
+          "param": "5 K2",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 5",
+            "choice": "Gate"
+          }
+        },
+        {
+          "param": "5 K3",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 5",
+            "choice": "Cab IR"
+          }
+        },
+        {
+          "param": "5 K4",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 5",
+            "choice": "EQ"
+          }
+        }
+      ]
+    },
+    {
+      "name": "E6",
+      "controls": [
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        {
+          "param": "Block 6",
+          "widget": "slider",
+          "overlay": "menu"
+        },
+        {
+          "param": "6 File",
+          "widget": "slider",
+          "visibleWhen": {
+            "param": "Block 6",
+            "choice": "Amp"
+          }
+        },
+        {
+          "param": "6 On",
+          "widget": "switch"
+        },
+        {
+          "param": "6 Level",
+          "widget": "fader",
+          "polarity": "bipolar"
+        },
+        {
+          "param": "6 K1",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 6",
+            "choice": "Gate"
+          }
+        },
+        {
+          "param": "6 K2",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 6",
+            "choice": "Gate"
+          }
+        },
+        {
+          "param": "6 K3",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 6",
+            "choice": "Cab IR"
+          }
+        },
+        {
+          "param": "6 K4",
+          "widget": "knob",
+          "polarity": "unipolar",
+          "visibleWhen": {
+            "param": "Block 6",
+            "choice": "EQ"
+          }
+        }
+      ]
+    }
+  ],
+  "style": {
+    "background": "ff141414"
+  }
+}

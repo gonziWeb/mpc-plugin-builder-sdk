@@ -1,0 +1,17 @@
+{
+  "name": "Monolith",
+  "manufacturer": "Gonzi Audio",
+  "version": "0.4.0",
+  "format": "vst2",
+  "kind": "effect",
+  "uid": "GMdM",
+  "numInputs": 2,
+  "numOutputs": 2,
+  "category": "Effect",
+  "file32": "VST/monolith-arm32.so",
+  "file64": "VST/monolith-arm64.so",
+  "description": "Monolith: a guitar rig builder. Six blocks in any order: Neural Amp Modeler captures (.nam), cabinet IRs (.wav), gate, drive, EQ, delay, reverb.",
+  "author": "Gonzi Audio",
+  "url": "",
+  "license": "MIT"
+}

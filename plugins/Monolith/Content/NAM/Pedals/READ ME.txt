@@ -1,0 +1,2 @@
+Put captures of PEDALS here: they are listed by Pedal blocks and drawn as a pedal.
+Captures anywhere else in NAM are listed by Amp blocks (unless their own metadata says "pedal").
