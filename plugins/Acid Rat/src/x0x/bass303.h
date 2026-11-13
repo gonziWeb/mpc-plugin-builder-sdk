@@ -1,6 +1,10 @@
 /* SPDX-License-Identifier: GPL-3.0-only */
 /* From X0X (github.com/charlesvestal/fm1-x0x 512c0da, firmware/src/dsp/bass303.h), changed for Acid Rat (Gonzi Audio,
- * 2026-11-12): host sample rate instead of a fixed 44.1 kHz, fractional pots. Changes are marked "Acid Rat". */
+ * 2026-11-12): host sample rate instead of a fixed 44.1 kHz, fractional pots. Changes are marked "Acid Rat".
+ * 2026-11-13 (Acid Rat 1.2): the extensions in bass303_ext_t (oscillator blend / sub / pulse width / noise, cutoff
+ * multiplier / key tracking / filter FM / accent sweep, envelope attack, amp attack / decay / release, pitch
+ * multiplier). At their neutral values, which bass303_init sets, the code that runs is X0X's and so is every
+ * sample; they are marked "Acid Rat 1.2". */
 /* BASS303_LITE, bass303_fixed_t and the biquads' coefficients apart from their state: after Optimist
  * (github.com/w0ts/optimist 3b695372, a64ca03b, GPL-3.0-only). */
 /* X0X TB-303 bass engine: a C99 / float / no-libm port of Open303 (Robin Schmidt, MIT) with
@@ -89,6 +93,33 @@ typedef struct { float z1, z2; } bass303_bqz_t;                         /* its s
 typedef struct { float x1, x2, y1, y2; } bass303_df1_t;                /* DF-I state */
 typedef struct { float x1, y1; } bass303_ap_t;                         /* halfband allpass */
 
+/* Acid Rat 1.2: what the plugin adds to the voice. Set through the bass303_ext_* functions. */
+typedef struct {
+    int on;                  /* an oscillator or ladder extension is in use: their extended loops run */
+    int cut_ext;             /* the cutoff has a multiplier, key tracking or a scaled accent sweep */
+    float blend;             /* 0..1 of the other wave mixed in */
+    float sub;               /* sub-oscillator level, 0..1 */
+    int sub_oct;             /* 1 or 2 octaves down */
+    float sub_phase;
+    int pw_stock;            /* the square is the 303's (O = 4.37) */
+    float pw_off, pw_dc, pw_h;   /* the square's offset O, its mean and the height of its hard edge */
+    float noise;             /* white noise into the filter, 0..1 */
+    uint32_t rng;
+    float fm;                /* filter FM by the oscillator, 0..1 */
+    float cut_mul;           /* cutoff multiplier (shift, LFO) */
+    float track;             /* key tracking, 0..1 (1 = the cutoff follows the pitch, reference 110 Hz) */
+    float sweep;             /* scale of the accent's filter sweep, 1 = stock */
+    float pitch_mul;         /* oscillator pitch multiplier (LFO) */
+    float rc1_c, rc1_pw[BASS303_CTRL + 1];      /* the filter envelope's attack follower (stock 3 ms) */
+    float ampd_pw[BASS303_CTRL + 1];            /* amp decay while the gate is up (stock 1230 ms) */
+    int rel_stock;                              /* release: 1 ms, 50 ms accented */
+    float rel_pw[BASS303_CTRL + 1];
+    int att_on, attacking;                      /* amp attack (stock: none) */
+    int amp_ext;                                /* attack, decay or release is not stock: the envelope's boost is
+                                                 * a factor on the amp instead of an addition, so the amp shapes it */
+    float att_pw[BASS303_CTRL + 1];
+} bass303_ext_t;
+
 typedef struct bass303 {
     float pot[BASS303_NPARAMS];          /* Acid Rat: fractional pots, 0..max (X0X: uint8_t) */
 
@@ -146,6 +177,8 @@ typedef struct bass303 {
     float r_b[4], r_a[4], r_z[3];        /* RAT op-amp, 3rd-order TDF-II */
     float r_corr_b1, r_corr_z, r_tone_z;
     float dcb_x1, dcb_y1;
+
+    bass303_ext_t x;                     /* Acid Rat 1.2 */
 } bass303_t;
 
 /* The coefficients that depend on the sample rate only, the same for every instance: one table (bass303.c
@@ -180,3 +213,11 @@ const x0x_param_t *bass303_param(int i);
 void bass303_set(bass303_t *b, int i, float value);   /* Acid Rat: float (X0X: int) */
 void bass303_set_rate(float sr);                       /* Acid Rat */
 int bass303_get(const bass303_t *b, int i);
+
+/* Acid Rat 1.2: the extensions (bass303_ext_t). Every one has a neutral value that leaves the voice stock. */
+void bass303_ext_osc(bass303_t *b, float blend, float sub, int sub_oct, float noise);   /* neutral: 0, 0, any, 0 */
+void bass303_ext_duty(bass303_t *b, float duty);          /* square duty 0.05..0.95; <= 0: the 303's own */
+void bass303_ext_filter(bass303_t *b, float cut_mul, float track, float fm, float sweep);   /* neutral: 1, 0, 0, 1 */
+void bass303_ext_pitch(bass303_t *b, float mul);          /* neutral: 1 */
+/* times in ms. env_att <= 3: stock; amp_att <= 0: none; amp_dec = 1230: stock; rel <= 0: stock (1 ms / 50 ms) */
+void bass303_ext_env(bass303_t *b, float env_att, float amp_att, float amp_dec, float rel);

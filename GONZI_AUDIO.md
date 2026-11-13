@@ -61,7 +61,7 @@ Our plugin projects live in `plugins/` and are tracked in git in this fork (`bui
 | Dusty Tape | effect, lo-fi tape echo | G6pD | 1.0.0 | MIT | `plugins/Dusty Tape/` |
 | Sabbath Kit | instrument, sampled doom/stoner drum kit + 12 built-in grooves | Gpnq | 2.1.0 | MIT code, **samples CC BY-SA 3.0** | `plugins/Sabbath Kit/` |
 | Grimoire | instrument, dark ambient / dungeon synth (GR!MM + GHOULBOX FM-1 firmwares ported) | Gp4w | 1.2.0 | **GPL-3.0-only** | `plugins/Grimoire/` |
-| Acid Rat | instrument, 303-style acid bass line (X0X's Open303 engine + TB-3PO line generator + 8 x 16-step patterns) | G37u | 1.1.0 | **GPL-3.0-only** | `plugins/Acid Rat/` |
+| Acid Rat | instrument, 303-style acid bass line (X0X's Open303 engine + TB-3PO line generator + 8 x 16-step patterns + osc / filter / envelope / LFO extensions) | G37u | 1.2.0 | **GPL-3.0-only** | `plugins/Acid Rat/` |
 
 Dusty Tape parameter order (permanent): Output, Sync, Division, Time, Feedback, Tone, Low Cut, Mix, Wow, Flutter,
 Drive, Hiss, Bits, Rate, Ping Pong.
@@ -118,8 +118,12 @@ Base Oct, Mutate, Gate, Swing, Delay Mix, Delay Time, Delay Fdbk. Choices (appen
 Off/Soft/RAT; Seq Off/Keys/Song; Rate 1/8, 1/8T, 1/16, 1/16T, 1/32; Scale Minor, Phrygian, Harm Minor, Min Pent, Dorian,
 Major; Mutate Off/1/2/4/8 bars; Delay Time 1/16, 1/8T, 1/8, 1/8D, 1/4. Then (1.1.0, 118 in all): Source (Dice/Pattern),
 Pattern (1-8), Steps (1-16), Write, Dice>Pat, Clear, Pos, then S1..S16 Note (38-53), S1..S16 Oct (54-69), S1..S16 Gate
-(70-85), S1..S16 Acc (86-101), S1..S16 Slide (102-117). Programs (10): append only; a program is only as long as the
-last parameter it sets (the first nine stop at 31), so programs never touch the patterns.
+(70-85), S1..S16 Acc (86-101), S1..S16 Slide (102-117). Then (1.2.0, 139 in all): Blend, Sub, Sub Oct, Pulse W, Noise,
+Cut Shift, Key Track, Filter FM, Low Cut, Env Attack, Acc Sweep, Amp Attack, Amp Decay, Release, LFO Shape, LFO Sync,
+LFO Rate, LFO Div, LFO>Cut, LFO>Pitch, LFO>PW (118-138). Programs (16): append only. Since 1.2.0 every program sets
+all 139 parameters (so an old program also switches the 1.2 extras off); `reset()` then puts the patterns, the
+pattern shown and - unless the program sets Source itself - the sequencer's source back from what the audio thread
+last had (`slots_`, `curPattern_`, `source_`).
 
 Acid Rat notes: the engine is X0X's `bass303` (charlesvestal/fm1-x0x at 512c0da, GPL-3.0-only; a float C port of
 Open303 with Devilfish slide / accent-decay ranges and a Soft / RAT drive) and its TB-3PO line generator, copied into
@@ -155,3 +159,15 @@ the four banks = the four beats, knobs = notes); its preview draws those widgets
 momentary keys, the translucent ColourBar bars, and whether a host call from the audio thread causes any glitch.
 `gonzi/tools/test_acid_steps.cpp` runs 24 checks on it (build line in its header); run it after any change to the
 sequencer. A 1.0.1 state was checked to load unchanged into 1.1.0, and the arm32 build passes host_sim under qemu.
+
+Acid Rat 1.2.0 ("beyond the 303"): the engine got `bass303_ext_t` (`b->x`, set by `bass303_ext_osc / _duty /
+_filter / _pitch / _env`, all marked "Acid Rat 1.2"). Neutral values leave X0X's own code paths running, so the
+sample-for-sample comparison with X0X's source still holds, and programs 1-9 render the same bytes as 1.0 (compare a
+`render_acid ... 0 1 2 3 4 5 6 7 8` WAV with an older one after any engine change). Extended paths: `run_osc_ext`
+(blend, duty, polyBLEP sub square, noise), `run_ladder_ext` (filter FM: the input raises the coefficient up to 3x,
+upwards only - downwards the feedback computed for the unmodulated cutoff makes the loop unstable, which was tried
+and blew up), and branches in `run_control` (cutoff multiplier, key tracking against 110 Hz, accent sweep scale,
+pitch multiplier, amp attack / decay / release; with any of the last three the envelope boost multiplies the amp
+instead of adding to it). In the plugin: `updateDeep()` per block, `modulate()` before each piece of audio (pieces
+of 16 frames while the LFO is in use), the LFO from `beat_` when synced, Low Cut as a one-pole after the engine.
+UI pages are now ACID, TONE, LFO, LINE (ui.json) + STEP (make_skin.py, placed after the generator's pages).
