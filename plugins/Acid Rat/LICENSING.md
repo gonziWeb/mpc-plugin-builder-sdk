@@ -35,6 +35,10 @@ MIT material may be combined into a GPL-3.0 work; the plugin built from it is GP
 - The sources are compiled as C++ inside `namespace x0x`, in `AcidRat.cpp`.
 - New in `AcidRat.cpp`: MIDI handling (accent from velocity, slide from overlapping notes), a step clock that follows
   the MPC's tempo and song position, swing and gate length, the ping-pong delay, the master level, the programs.
+- New in 1.2.0, by Gonzi Audio: the extensions in `bass303.c` / `bass303.h` marked "Acid Rat 1.2" (oscillator blend,
+  pulse width, sub-oscillator, noise; cutoff multiplier, key tracking, filter FM, accent sweep scale; filter-envelope
+  attack; amp attack, decay, release; pitch multiplier) and, in `AcidRat.cpp`, the LFO and the low cut. At their
+  neutral values the engine still gives X0X's samples exactly.
 - New in 1.1.0, also in `AcidRat.cpp` and by Gonzi Audio: the step sequencer (eight 16-step patterns, Write, the
   STEP page drawn by `tools/make_skin.py`). It is not X0X's pattern editor.
 - Not taken from X0X: its drum machines, break player, pattern editor, song mode, effects and everything specific to

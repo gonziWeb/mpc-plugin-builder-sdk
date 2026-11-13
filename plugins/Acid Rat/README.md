@@ -6,10 +6,15 @@ that writes acid lines and follows the MPC's tempo, and a ping-pong delay.
 
 The engine is the one of [X0X](https://github.com/charlesvestal/fm1-x0x) (a firmware for the M-VAVE FM-1), which is a
 port of Robin Schmidt's Open303 with Devilfish-style ranges; the line generator is X0X's TB-3PO. Licence:
-**GPL-3.0-only** - see `LICENSING.md` for who made what. Version 1.1.0, uid `G37u`.
+**GPL-3.0-only** - see `LICENSING.md` for who made what. Version 1.2.0, uid `G37u`.
 
-1.1.0 adds the **step sequencer**: eight 16-step patterns you write yourself, on their own page. The sound, the first
-31 parameters and the first nine programs are those of 1.0; projects made with 1.0 load unchanged.
+- 1.1.0 added the **step sequencer**: eight 16-step patterns you write yourself (page STEP).
+- 1.2.0 goes **beyond the 303** (pages TONE and LFO): oscillator blend, pulse width, sub-oscillator and noise; cutoff
+  shift, key tracking, filter FM and a low cut; attack, decay and release for the volume, an attack for the filter
+  envelope, the size of the accent sweep; a tempo-synced LFO to cutoff, pitch and pulse width.
+
+Every addition starts at a value that changes nothing: with pages TONE and LFO left alone the plugin sounds exactly
+as 1.0 did (checked sample for sample), and projects made with earlier versions load unchanged.
 
 ## Playing it
 
@@ -33,6 +38,33 @@ The line is fully determined by `Seed`, `Length`, `Density`, `Seq Accent`, `Seq 
 and `Base Oct`: the same settings always give the same line, and it is saved with the project as those settings.
 `Mutate` re-rolls about a quarter of the steps every 1, 2, 4 or 8 bars, so the line drifts; it starts again from the
 seed's line each time playback starts.
+
+## Beyond the 303 (pages TONE and LFO)
+
+**TONE**
+
+| Control | Range | What it does | Leaves the 303 alone at |
+|---|---|---|---|
+| Blend | 0..100 % | Mixes the other waveform in (saw into the square, or the reverse) | 0 |
+| Pulse W | 5..95 % | The square's duty cycle (also heard through Blend) | 46.9 |
+| Sub, Sub Oct | 0..100 %, 1 or 2 down | A square sub-oscillator below the note, into the filter | Sub 0 |
+| Noise | 0..100 % | White noise into the filter | 0 |
+| Cut Shift | -3..+3 oct | Moves the whole cutoff range: the knob on page ACID stays the 303's, this takes it lower or much higher | 0 |
+| Key Track | 0..100 % | The cutoff follows the note (100 %: an octave up the keys opens it an octave) | 0 |
+| Filter FM | 0..100 % | The oscillator opens the filter at audio rate: grit and growl, more with Sub and Noise | 0 |
+| Low Cut | Off, 21..800 Hz | Highpass after the synth, to thin the bass | Off |
+| Env Attack | 3..300 ms | How fast the filter envelope rises: slow gives a "wow" on every note | 3 |
+| Acc Sweep | 0..200 % | How far an accent opens the filter | 100 |
+| Amp Attack | Off..500 ms | Volume fade-in (time to full level) | Off |
+| Amp Decay | 30..8000 ms | How the volume falls while a note is held: short = plucked, long = sustained | 1230 |
+| Release | 303, 1..2000 ms | How the volume falls after the note ends ("303": 1 ms, 50 ms on accents) | 303 |
+
+**LFO**: Shape (sine, triangle, falling saw, square, sample & hold), Sync (free in Hz, or a division of the MPC's
+tempo from 8 bars to 1/8 triplet; synced, it follows the song position while the MPC plays), and three depths:
+LFO>Cut (100 % = 3 octaves up and down), LFO>Pitch (up to 12 semitones) and LFO>PW (the square's duty).
+
+Filter FM only opens the filter (from the knob's cutoff upwards), which keeps the resonance stable at any setting.
+With a volume attack, decay or release of your own, the accent's loudness follows that shape too.
 
 ## The step sequencer (page STEP)
 
@@ -115,19 +147,42 @@ The eight patterns are saved with the project. Programs change the sound, not th
 | 70-85 | S1..S16 Gate | Off / On | |
 | 86-101 | S1..S16 Acc | Off / On | |
 | 102-117 | S1..S16 Slide | Off / On | |
+| 118 | Blend | 0..100 % | See "Beyond the 303" |
+| 119 | Sub | 0..100 % | |
+| 120 | Sub Oct | 1 down / 2 down | |
+| 121 | Pulse W | 5..95 % | |
+| 122 | Noise | 0..100 % | |
+| 123 | Cut Shift | -3..+3 oct | |
+| 124 | Key Track | 0..100 % | |
+| 125 | Filter FM | 0..100 % | |
+| 126 | Low Cut | 20 (Off)..800 Hz | |
+| 127 | Env Attack | 3..300 ms | |
+| 128 | Acc Sweep | 0..200 % | |
+| 129 | Amp Attack | 0 (Off)..500 ms | |
+| 130 | Amp Decay | 30..8000 ms | |
+| 131 | Release | 0 (303)..2000 ms | |
+| 132 | LFO Shape | Sine, Triangle, Saw, Square, S&H | |
+| 133 | LFO Sync | Free / Sync | |
+| 134 | LFO Rate | 0.05..30 Hz | Used when Free |
+| 135 | LFO Div | 8 bars, 4 bars, 2 bars, 1 bar, 1/2, 1/4, 1/8, 1/16, 1/4T, 1/8T | Used when Sync |
+| 136 | LFO>Cut | 0..100 % | |
+| 137 | LFO>Pitch | 0..12 st | |
+| 138 | LFO>PW | 0..100 % | |
 
 The 80 step parameters are the pattern on the screen. Choosing another pattern loads its steps into them, so do not
 automate them; automate `Pattern` instead.
 
-Screen: page **ACID** (the sound: the four classic knobs in the top row), page **LINE** (the generator) and page **STEP**
-(the step sequencer).
+Screen, left to right: **ACID** (the 303's own controls, the four classic knobs in the top row), **TONE** and **LFO**
+(beyond the 303), **LINE** (the generator) and **STEP** (the step sequencer).
 The screen has its own look (black panel, acid-green print, chrome-ringed knobs), in `skins/`. It is generated, not
 hand-edited: after changing `ui.json` or the parameters, build, run `python3 "plugins/Acid Rat/tools/make_skin.py"`
 (needs Pillow; `--preview out.png` draws the pages without an MPC), then build again. Not yet checked on the MPC's
 screen; if it misbehaves there, delete `skins/` and rebuild to get the SDK's standard kit back.
 
 Programs: Acid Rat, Squelch, Hollow Square, Rat Bite, Soft Burn, Devil Slide, Dub Acid, Line: Keys, Line: Rave,
-Pattern: Keys (hold a pad: pattern 1 plays).
+Pattern: Keys (hold a pad: pattern 1 plays), then six that use 1.2: Sub Rat, PWM Hollow, Wobble, Screamer,
+Slow Riser, S&H Robot. Choosing a program sets the whole sound (so "Acid Rat" is always the plain 303) and keeps your
+patterns, the pattern shown and what the sequencer plays.
 
 ## Tips
 
@@ -149,16 +204,19 @@ Pattern: Keys (hold a pad: pattern 1 plays).
   keys. If the screen does not follow, the pattern still plays and edits correctly; leaving the page and coming back,
   or reloading the project, shows the right values.
 - No pitch bend, no mod wheel, no sustain pedal.
-- Of the Devilfish modifications only the slide time and accent decay ranges; the rest is a stock 303 model.
+- One oscillator and one filter: no second oscillator, no other filter types, no step-by-step parameter locks.
+- The LFO runs free or with the tempo; it does not restart on each note.
 - Mono signal apart from the delay's echoes.
 
 ## CPU and testing
 
-One voice, 4x oversampled: about 0.5 % of a desktop core in the simulator, which should be a few percent of one core
+One voice, 4x oversampled: about 0.5 to 0.7 % of a desktop core in the simulator (the higher figure with the 1.2
+extras on), which should be a few percent of one core
 on a first-generation MPC One (estimated, not yet measured on the device). Checked: SDK validator, host simulator
 (block sizes 32-512, parameter sweep, state round trip), also with the arm32 build under emulation; sequencer timing at
 several block sizes, with swing and across a loop; the step sequencer (play, light, Write, pattern change, Clear,
-Dice>Pat, save and load, a 1.0 state loading into 1.1); 44.1 and 48 kHz.
+Dice>Pat, save and load, a 1.0 state loading unchanged, programs keeping the patterns); each 1.2 control measured for
+its effect; 400 random extreme settings stay finite and bounded; 44.1 and 48 kHz.
 
 ## Build
 
