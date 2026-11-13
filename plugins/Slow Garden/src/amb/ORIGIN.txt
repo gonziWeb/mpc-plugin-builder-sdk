@@ -1,0 +1,11 @@
+These three files are unchanged copies (byte for byte) from:
+
+  amb.c, amb.h   AMB-1 by Charles Vestal, https://github.com/charlesvestal/fm1-amb
+                 commit da0047d, app/dsp/                      MPL-2.0
+  fastmath.h     fm1-base by Charles Vestal, https://github.com/charlesvestal/fm1-base
+                 commit c8e0599, include/                      MPL-2.0
+
+The plugin does not compile them directly. tools/make_engine.py turns amb.h + amb.c into
+src/core/amb_engine.h (the same code as members of one C++ struct, so that every plugin instance
+has its own engine). To take a newer AMB-1: replace the files here, update the commits above,
+run  python3 tools/make_engine.py  and rebuild.

@@ -1,0 +1,9 @@
+Slow Garden 1.0.0, by Gonzi Audio.
+
+Free software under the Mozilla Public License 2.0 (LICENSES/MPL-2.0.txt).
+Its engine is AMB-1 by Charles Vestal (https://github.com/charlesvestal/fm1-amb), MPL-2.0.
+
+Source code: https://github.com/gonziWeb/mpc-plugin-builder-sdk, in "plugins/Slow Garden/",
+and in the source zip that comes with each release.
+
+Slow Garden is not made or endorsed by Charles Vestal, M-VAVE, Brian Eno or Akai / inMusic.

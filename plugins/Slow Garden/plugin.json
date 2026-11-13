@@ -1,0 +1,17 @@
+{
+  "name": "Slow Garden",
+  "manufacturer": "Gonzi Audio",
+  "version": "1.0.0",
+  "format": "vst2",
+  "kind": "instrument",
+  "uid": "GggB",
+  "numInputs": 0,
+  "numOutputs": 2,
+  "category": "Synth",
+  "file32": "VST/slow-garden-arm32.so",
+  "file64": "VST/slow-garden-arm64.so",
+  "description": "Generative ambient machine that plays itself, after Music for Airports: breathing pad, bells on loops of 13, 17, 23 and 29 beats, gliding bass, Euclidean pulse, tape echo and plate reverb. The engine of AMB-1 (Charles Vestal) for the MPC.",
+  "author": "Gonzi Audio",
+  "url": "https://github.com/gonziWeb/mpc-plugin-builder-sdk",
+  "license": "MPL-2.0"
+}
