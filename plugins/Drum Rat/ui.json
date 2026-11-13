@@ -1,0 +1,402 @@
+{
+ "kit": "amber",
+ "pages": [
+  {
+   "name": "KIT",
+   "controls": [
+    {
+     "param": "Kit",
+     "widget": "switch"
+    },
+    {
+     "param": "Accent",
+     "widget": "knob"
+    },
+    {
+     "param": "Drive",
+     "widget": "knob"
+    },
+    {
+     "param": "Drive Type",
+     "widget": "slider",
+     "overlay": "menu"
+    },
+    {
+     "param": "BD Tone",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "BD Attack",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "SD Tone",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "SD Snappy",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "Congas",
+     "widget": "switch"
+    },
+    {
+     "param": "Claves",
+     "widget": "switch"
+    },
+    {
+     "param": "Maracas",
+     "widget": "switch"
+    },
+    {
+     "param": "Width",
+     "widget": "knob"
+    },
+    {
+     "param": "Master",
+     "widget": "fader"
+    },
+    {
+     "param": "Pad Map",
+     "widget": "switch"
+    },
+    "empty",
+    "empty"
+   ]
+  },
+  {
+   "name": "DRUMS 1",
+   "controls": [
+    {
+     "param": "BD Level",
+     "widget": "fader"
+    },
+    {
+     "param": "BD Tune",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "BD Decay",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "BD Mach",
+     "widget": "switch"
+    },
+    {
+     "param": "SD Level",
+     "widget": "fader"
+    },
+    {
+     "param": "SD Tune",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "SD Decay",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "SD Mach",
+     "widget": "switch"
+    },
+    {
+     "param": "LT Level",
+     "widget": "fader"
+    },
+    {
+     "param": "LT Tune",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "LT Decay",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "LT Mach",
+     "widget": "switch"
+    },
+    {
+     "param": "MT Level",
+     "widget": "fader"
+    },
+    {
+     "param": "MT Tune",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "MT Decay",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "MT Mach",
+     "widget": "switch"
+    }
+   ]
+  },
+  {
+   "name": "DRUMS 2",
+   "controls": [
+    {
+     "param": "HT Level",
+     "widget": "fader"
+    },
+    {
+     "param": "HT Tune",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "HT Decay",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "HT Mach",
+     "widget": "switch"
+    },
+    {
+     "param": "RS Level",
+     "widget": "fader"
+    },
+    {
+     "param": "RS Tune",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "RS Decay",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "RS Mach",
+     "widget": "switch"
+    },
+    {
+     "param": "CP Level",
+     "widget": "fader"
+    },
+    {
+     "param": "CP Tune",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "CP Decay",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "CP Mach",
+     "widget": "switch"
+    },
+    {
+     "param": "CH Level",
+     "widget": "fader"
+    },
+    {
+     "param": "CH Tune",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "CH Decay",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "CH Mach",
+     "widget": "switch"
+    }
+   ]
+  },
+  {
+   "name": "DRUMS 3",
+   "controls": [
+    {
+     "param": "OH Level",
+     "widget": "fader"
+    },
+    {
+     "param": "OH Tune",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "OH Decay",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "OH Mach",
+     "widget": "switch"
+    },
+    {
+     "param": "CY Level",
+     "widget": "fader"
+    },
+    {
+     "param": "CY Tune",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "CY Decay",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "CY Mach",
+     "widget": "switch"
+    },
+    {
+     "param": "PC Level",
+     "widget": "fader"
+    },
+    {
+     "param": "PC Tune",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "PC Decay",
+     "widget": "knob",
+     "polarity": "bipolar"
+    },
+    {
+     "param": "PC Mach",
+     "widget": "switch"
+    }
+   ]
+  },
+  {
+   "name": "SEQ",
+   "controls": [
+    {
+     "param": "Seq",
+     "widget": "switch"
+    },
+    {
+     "param": "Pattern",
+     "widget": "slider",
+     "overlay": "menu"
+    },
+    {
+     "param": "Steps",
+     "widget": "slider",
+     "overlay": "menu"
+    },
+    {
+     "param": "Rate",
+     "widget": "switch"
+    },
+    {
+     "param": "Track",
+     "widget": "slider",
+     "overlay": "menu"
+    },
+    {
+     "param": "Pad Sel",
+     "widget": "switch"
+    },
+    {
+     "param": "Clear Trk",
+     "widget": "switch"
+    },
+    {
+     "param": "Clear Pat",
+     "widget": "switch"
+    },
+    {
+     "param": "Swing",
+     "widget": "knob"
+    },
+    "empty",
+    "empty",
+    "empty"
+   ]
+  },
+  {
+   "name": "STEPS",
+   "controls": [
+    {
+     "param": "S1",
+     "widget": "switch"
+    },
+    {
+     "param": "S2",
+     "widget": "switch"
+    },
+    {
+     "param": "S3",
+     "widget": "switch"
+    },
+    {
+     "param": "S4",
+     "widget": "switch"
+    },
+    {
+     "param": "S5",
+     "widget": "switch"
+    },
+    {
+     "param": "S6",
+     "widget": "switch"
+    },
+    {
+     "param": "S7",
+     "widget": "switch"
+    },
+    {
+     "param": "S8",
+     "widget": "switch"
+    },
+    {
+     "param": "S9",
+     "widget": "switch"
+    },
+    {
+     "param": "S10",
+     "widget": "switch"
+    },
+    {
+     "param": "S11",
+     "widget": "switch"
+    },
+    {
+     "param": "S12",
+     "widget": "switch"
+    },
+    {
+     "param": "S13",
+     "widget": "switch"
+    },
+    {
+     "param": "S14",
+     "widget": "switch"
+    },
+    {
+     "param": "S15",
+     "widget": "switch"
+    },
+    {
+     "param": "S16",
+     "widget": "switch"
+    }
+   ]
+  }
+ ]
+}
